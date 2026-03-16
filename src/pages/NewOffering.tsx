@@ -140,33 +140,56 @@ export default function NewOfferingPage() {
           </div>
 
           <div className="divide-y divide-border">
-            {DENOMINATIONS.map((denom) => (
-              <motion.div
-                key={denom.field}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between px-4 py-3"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-card-foreground">{denom.label}</span>
-                  <span className="text-xs text-muted-foreground">Notes</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={999}
-                    className="w-20 text-right font-tabular text-sm h-9"
-                    placeholder="0"
-                    value={counts[denom.field] || ''}
-                    onChange={(e) => handleCountChange(denom.field, e.target.value)}
-                  />
-                  <span className="w-24 text-right font-tabular text-sm font-semibold text-card-foreground">
-                    ₹{(denom.value * (counts[denom.field] || 0)).toLocaleString('en-IN')}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
+            {DENOMINATIONS.map((denom) => {
+              const increments = [1, 5, 10, 20, 50];
+              const currentCount = counts[denom.field] || 0;
+              return (
+                <motion.div
+                  key={denom.field}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="px-4 py-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-card-foreground">{denom.label}</span>
+                      <span className="text-xs text-muted-foreground">{currentCount} notes</span>
+                    </div>
+                    <span className="font-tabular text-sm font-semibold text-card-foreground">
+                      ₹{(denom.value * currentCount).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {increments.map((inc) => (
+                      <div key={inc} className="flex gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = currentCount - inc;
+                            if (next >= 0) setCounts((prev) => ({ ...prev, [denom.field]: next }));
+                          }}
+                          disabled={currentCount < inc}
+                          className="h-8 px-2 rounded-l-md text-xs font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          −{inc}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = currentCount + inc;
+                            if (next <= 999) setCounts((prev) => ({ ...prev, [denom.field]: next }));
+                          }}
+                          disabled={currentCount + inc > 999}
+                          className="h-8 px-2 rounded-r-md text-xs font-semibold bg-success text-success-foreground hover:bg-success/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          +{inc}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 
