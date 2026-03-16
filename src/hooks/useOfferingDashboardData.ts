@@ -42,6 +42,28 @@ export function useOfferingDashboardData() {
       }));
   }, [allOfferings]);
 
+  // Daily collection — aggregate multiple offerings on the same day
+  const dailyCollectionData: SaleDataPoint[] = useMemo(() => {
+    const byDay = new Map<string, number>();
+    for (const o of allOfferings) {
+      const dayKey = new Date(o.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      byDay.set(dayKey, (byDay.get(dayKey) || 0) + o.total_amount);
+    }
+    // Sort by actual date
+    const sorted = [...allOfferings]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const seen = new Set<string>();
+    const result: SaleDataPoint[] = [];
+    for (const o of sorted) {
+      const dayKey = new Date(o.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      if (!seen.has(dayKey)) {
+        seen.add(dayKey);
+        result.push({ time: dayKey, sales: byDay.get(dayKey) || 0 });
+      }
+    }
+    return result;
+  }, [allOfferings]);
+
   // Cumulative revenue over time
   const cumulativeRevenueData: SaleDataPoint[] = useMemo(() => {
     let cumulative = 0;
@@ -81,6 +103,7 @@ export function useOfferingDashboardData() {
     salesCount,
     averageSale,
     salesChartData,
+    dailyCollectionData,
     latestPayments,
   };
 }

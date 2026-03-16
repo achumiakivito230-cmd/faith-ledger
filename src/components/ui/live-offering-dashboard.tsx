@@ -2,9 +2,10 @@ import React, { FC, useMemo } from 'react';
 import { useOfferingDashboardData, type SaleDataPoint } from '@/hooks/useOfferingDashboardData';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  LineChart, Line, BarChart as ReBarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
 } from 'recharts';
-import { Banknote, Repeat2, TrendingUp, Clock, BarChart3 } from 'lucide-react';
+import { Banknote, Repeat2, TrendingUp, Clock, BarChart3, CalendarDays } from 'lucide-react';
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
@@ -55,6 +56,39 @@ const OfferingChart: FC<OfferingChartProps> = React.memo(({ data, title, lineCol
   );
 });
 
+const DailyBarChart: FC<{ data: SaleDataPoint[] }> = React.memo(({ data }) => {
+  const chartData = useMemo(() => data || [], [data]);
+
+  return (
+    <div className="bg-[#E0E8F5] rounded-3xl p-4">
+      <div className="flex items-center gap-1.5 mb-3">
+        <CalendarDays className="h-4 w-4 text-slate-600" />
+        <h4 className="text-sm font-bold text-slate-900">Daily Collection</h4>
+      </div>
+      <p className="text-[10px] text-slate-400 mb-2">Amount collected per day</p>
+      <div className="bg-white/50 rounded-2xl p-2" style={{ height: '200px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ReBarChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
+            <XAxis dataKey="time" fontSize={9} stroke="#94a3b8" tick={{ fontSize: 9 }} />
+            <YAxis fontSize={9} stroke="#94a3b8" tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} width={36} />
+            <RechartsTooltip
+              contentStyle={{ borderRadius: '12px', fontSize: '11px', padding: '6px 10px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+              formatter={(value: number) => [formatCurrency(value), 'Daily Total']}
+            />
+            <Bar
+              dataKey="sales"
+              fill="#5b7cc5"
+              radius={[6, 6, 0, 0]}
+              animationDuration={800}
+            />
+          </ReBarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+});
+
 export const LiveOfferingDashboard: FC = () => {
   const {
     totalRevenue,
@@ -62,6 +96,7 @@ export const LiveOfferingDashboard: FC = () => {
     salesCount,
     averageSale,
     salesChartData,
+    dailyCollectionData,
     latestPayments,
   } = useOfferingDashboardData();
 
@@ -97,6 +132,9 @@ export const LiveOfferingDashboard: FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Daily Collection Bar Chart */}
+      <DailyBarChart data={dailyCollectionData} />
 
       {/* Charts */}
       <OfferingChart

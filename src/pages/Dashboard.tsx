@@ -24,6 +24,14 @@ const PASTEL = {
   sky: 'bg-[#D4E8F0]',
 };
 
+// Cycling colors for individual offering rows
+const OFFERING_COLORS = [
+  'bg-[#E8E0F0]', // lavender
+  'bg-[#D4E8F0]', // sky
+  'bg-[#F5D5D5]', // rose
+  'bg-[#D6EDE8]', // mint
+];
+
 export default function DashboardPage() {
   const { churchId, profile } = useAuth();
   const now = new Date();
@@ -157,9 +165,9 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Offerings list — pastel container */}
-        <div className="bg-[#F5F0FA] rounded-3xl overflow-hidden">
-          <div className="px-4 pt-4 pb-2">
+        {/* Offerings — individually colored cards */}
+        <div>
+          <div className="mb-2">
             <h2 className="text-sm font-bold text-slate-900">
               {months[month]} {year} Offerings
             </h2>
@@ -167,28 +175,28 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-sm text-slate-400">Loading...</div>
+            <div className="bg-[#F5F0FA] rounded-2xl p-8 text-center text-sm text-slate-400">Loading...</div>
           ) : offerings.length === 0 ? (
-            <div className="p-8 text-center text-sm text-slate-400">
+            <div className="bg-[#F5F0FA] rounded-2xl p-8 text-center text-sm text-slate-400">
               No offerings recorded for {months[month]} {year}.
             </div>
           ) : (
-            <div className="divide-y divide-white/50 px-4 pb-3">
+            <div className="space-y-2.5">
               {offerings.map((offering, i) => (
                 <motion.div
                   key={offering.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="flex items-center justify-between py-2.5"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className={`${OFFERING_COLORS[i % OFFERING_COLORS.length]} rounded-2xl p-3.5 flex items-center justify-between`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xs text-slate-500 w-20">
-                      {format(new Date(offering.date), 'MMM d, yyyy')}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-xs text-slate-500 shrink-0">
+                      {format(new Date(offering.date), 'MMM d')}
                     </span>
                     <StatusBadge status={offering.status} />
                   </div>
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-base font-extrabold text-slate-900 shrink-0 ml-2">
                     ₹{Number(offering.total_amount).toLocaleString('en-IN')}
                   </span>
                 </motion.div>
