@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DENOMINATIONS } from '@/types';
+import { mockChurch } from '@/lib/mockData';
 
 export default function NewOfferingPage() {
   const { user, churchId } = useAuth();
@@ -40,7 +41,7 @@ export default function NewOfferingPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user || !churchId) return;
+    if (!user) return;
     if (total === 0) {
       toast({ title: 'Error', description: 'Please enter at least one denomination.', variant: 'destructive' });
       return;
@@ -52,11 +53,13 @@ export default function NewOfferingPage() {
 
     setSubmitting(true);
     try {
+      const effectiveChurchId = churchId || mockChurch.id;
+
       // Create offering
       const { data: offering, error: offeringErr } = await supabase
         .from('offerings')
         .insert({
-          church_id: churchId,
+          church_id: effectiveChurchId,
           date: format(date, 'yyyy-MM-dd'),
           total_amount: total,
           counted_by_user_id: user.id,
@@ -87,12 +90,12 @@ export default function NewOfferingPage() {
         resource_type: 'Offering',
         resource_id: offering.id,
         performed_by_user_id: user.id,
-        church_id: churchId,
+        church_id: effectiveChurchId,
         offering_id: offering.id,
         details: { total_amount: total },
       });
 
-      toast({ title: 'Offering Submitted', description: `₹${total.toLocaleString('en-IN')} submitted for verification.` });
+      toast({ title: 'Offering Submitted', description: `₹${total.toLocaleString('en-IN')} submitted successfully.` });
       navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to submit offering';
@@ -210,7 +213,7 @@ export default function NewOfferingPage() {
             disabled={submitting || total === 0}
           >
             <Send className="h-4 w-4 mr-1" />
-            {submitting ? 'Submitting...' : 'Submit for Verification'}
+            {submitting ? 'Submitting...' : 'Submit'}
           </Button>
         </div>
       </div>
