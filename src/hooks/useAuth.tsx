@@ -3,6 +3,23 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile, UserRole } from '@/types';
 
+// Mock user for demo/testing when no real auth
+const MOCK_USER: User = {
+  id: 'mock-user-123',
+  aud: 'authenticated',
+  role: 'authenticated',
+  email: 'demo@church.com',
+  email_confirmed_at: new Date().toISOString(),
+  phone: '',
+  confirmed_at: new Date().toISOString(),
+  last_sign_in_at: new Date().toISOString(),
+  app_metadata: {},
+  user_metadata: { name: 'Demo User' },
+  identities: [],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -68,23 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session) {
         await syncSession(session);
       } else {
-        // Auto-login with default test credentials
-        try {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: 'test@church.com',
-            password: 'Test123456',
-          });
-          if (!error) {
-            const { data: { session: newSession } } = await supabase.auth.getSession();
-            await syncSession(newSession);
-          } else {
-            console.error('Auto-login failed:', error.message);
-            await syncSession(null);
-          }
-        } catch (err) {
-          console.error('Auto-login error:', err);
-          await syncSession(null);
-        }
+        // Use mock user for demo/testing (no real auth)
+        setUser(MOCK_USER);
+        setLoading(false);
       }
     });
 
