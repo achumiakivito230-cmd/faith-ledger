@@ -10,7 +10,6 @@ import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
 import HistoryPage from "./pages/History";
-
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,8 +26,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-
-  // If user has no church, redirect to setup
   if (profile && !profile.church_id) return <Navigate to="/church-setup" replace />;
 
   return <>{children}</>;
@@ -49,31 +46,34 @@ function ChurchSetupRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const AppRoutes = () => (
-  <Routes>
-    <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
-    <Route path="/signup" element={<AuthRoute><SignupPage /></AuthRoute>} />
-    <Route path="/church-setup" element={<ChurchSetupRoute><ChurchSetupPage /></ChurchSetupRoute>} />
-    <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-    <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />
-    <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-    
-    <Route path="*" element={<NotFound />} />
-  </Routes>
-);
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
+      <Route path="/signup" element={<AuthRoute><SignupPage /></AuthRoute>} />
+      <Route path="/church-setup" element={<ChurchSetupRoute><ChurchSetupPage /></ChurchSetupRoute>} />
+      <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />
+      <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
