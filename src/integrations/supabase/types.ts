@@ -253,6 +253,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_church_and_assign: {
+        Args: { _address?: string; _name: string }
+        Returns: string
+      }
       get_user_church_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }

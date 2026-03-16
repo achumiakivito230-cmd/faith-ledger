@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -14,31 +13,30 @@ export default function ChurchSetupPage() {
   const [address, setAddress] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    const trimmedChurchName = churchName.trim();
+    const trimmedAddress = address.trim();
+
+    if (!trimmedChurchName) {
+      toast({ title: 'Error', description: 'Church name is required.', variant: 'destructive' });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      // Create church
-      const { data: church, error: churchErr } = await supabase
-        .from('churches')
-        .insert({ name: churchName, address: address || null })
-        .select()
-        .single();
-      if (churchErr) throw churchErr;
+      const { error } = await supabase.rpc('create_church_and_assign', {
+        _name: trimmedChurchName,
+        _address: trimmedAddress || null,
+      });
 
-      // Update profile with church_id
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .update({ church_id: church.id })
-        .eq('user_id', user.id);
-      if (profileErr) throw profileErr;
+      if (error) throw error;
 
-      toast({ title: 'Church Created', description: `${churchName} is ready to use.` });
-      // Force reload to pick up new profile
+      toast({ title: 'Church Created', description: `${trimmedChurchName} is ready to use.` });
       window.location.href = '/';
     } catch (err: unknown) {
       console.error('Church setup error:', err);
