@@ -10,7 +10,7 @@ import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
 import HistoryPage from "./pages/History";
-import VerifyPage from "./pages/Verify";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
