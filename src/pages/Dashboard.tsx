@@ -22,7 +22,22 @@ export default function DashboardPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [loading, setLoading] = useState(true);
+  const [churchName, setChurchName] = useState('Church');
 
+  // Fetch church name
+  useEffect(() => {
+    if (!churchId) return;
+    supabase
+      .from('churches')
+      .select('name')
+      .eq('id', churchId)
+      .single()
+      .then(({ data }) => {
+        if (data?.name) setChurchName(data.name);
+      });
+  }, [churchId]);
+
+  // Fetch offerings
   useEffect(() => {
     if (!churchId) return;
     setLoading(true);
@@ -52,7 +67,7 @@ export default function DashboardPage() {
   }, [offerings]);
 
   const handleExportPDF = () => {
-    generateMonthlyPDF(offerings, months[month], year, profile?.name ?? 'Treasurer');
+    generateMonthlyPDF(offerings, months[month], year, profile?.name ?? 'Treasurer', churchName);
   };
 
   return (
@@ -104,7 +119,7 @@ export default function DashboardPage() {
               New Offering
             </Button>
           </Link>
-          <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={offerings.length === 0}>
+          <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={offerings.filter(o => o.status === 'verified').length === 0}>
             <FileText className="h-4 w-4 mr-1" />
             Export PDF
           </Button>

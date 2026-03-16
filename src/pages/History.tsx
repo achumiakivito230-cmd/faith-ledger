@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import type { Offering, Denomination } from '@/types';
 import { DENOMINATIONS } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function HistoryPage() {
   const { churchId, role } = useAuth();
@@ -17,6 +18,8 @@ export default function HistoryPage() {
   const [denom, setDenom] = useState<Denomination | null>(null);
   const [counterName, setCounterName] = useState('');
   const [verifierName, setVerifierName] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     if (!churchId) return;
@@ -31,6 +34,20 @@ export default function HistoryPage() {
         setLoading(false);
       });
   }, [churchId]);
+
+  const filteredOfferings = useMemo(() => {
+    let filtered = offerings;
+
+    if (dateFilter) {
+      filtered = filtered.filter((o) => format(new Date(o.date), 'yyyy-MM-dd') === dateFilter);
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((o) => o.status === statusFilter);
+    }
+
+    return filtered;
+  }, [offerings, dateFilter, statusFilter]);
 
   const openDetail = async (offering: Offering) => {
     setSelected(offering);
@@ -71,14 +88,48 @@ export default function HistoryPage() {
           <p className="text-sm text-muted-foreground">All recorded offerings</p>
         </div>
 
+        {/* Filters */}
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+          />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[130px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="verified">Verified</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          {(dateFilter || statusFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setDateFilter('');
+                setStatusFilter('all');
+              }}
+              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+
         <div className="rounded-xl bg-card shadow-card overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : offerings.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">No offerings recorded yet.</div>
+          ) : filteredOfferings.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">No offerings match the selected filters.</div>
           ) : (
             <div className="divide-y divide-border">
-              {offerings.map((offering, i) => (
+              {filteredOfferings.map((offering, i) => (
                 <motion.button
                   key={offering.id}
                   initial={{ opacity: 0 }}

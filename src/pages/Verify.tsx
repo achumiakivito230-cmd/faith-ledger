@@ -12,7 +12,7 @@ import type { Offering, Denomination } from '@/types';
 import { DENOMINATIONS } from '@/types';
 
 export default function VerifyPage() {
-  const { user, churchId } = useAuth();
+  const { user, churchId, profile } = useAuth();
   const { toast } = useToast();
   const [pendingOfferings, setPendingOfferings] = useState<Offering[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +20,16 @@ export default function VerifyPage() {
   const [denom, setDenom] = useState<Denomination | null>(null);
   const [counterName, setCounterName] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  if (profile?.role === 'pastor') {
+    return (
+      <AppLayout>
+        <div className="text-sm text-muted-foreground p-8 text-center">
+          Only treasurers and counters can verify offerings.
+        </div>
+      </AppLayout>
+    );
+  }
 
   const fetchPending = async () => {
     if (!churchId) return;

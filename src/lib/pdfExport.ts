@@ -7,14 +7,15 @@ export function generateMonthlyPDF(
   offerings: Offering[],
   monthName: string,
   year: number,
-  treasurerName: string
+  treasurerName: string,
+  churchName: string = 'Church'
 ) {
   const doc = new jsPDF();
 
   // Header
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('CHURCH TREASURY REPORT', 105, 20, { align: 'center' });
+  doc.text(`${churchName} — Treasury Report`, 105, 20, { align: 'center' });
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');

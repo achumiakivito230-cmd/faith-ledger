@@ -10,6 +10,7 @@ import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
 import HistoryPage from "./pages/History";
+import VerifyPage from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
   if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -55,6 +62,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />
       <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+      <Route path="/verify" element={<ProtectedRoute><VerifyPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

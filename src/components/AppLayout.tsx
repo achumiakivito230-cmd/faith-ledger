@@ -9,6 +9,7 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/new-offering', icon: PlusCircle, label: 'New Offering', roles: ['treasurer', 'counter'] },
   { to: '/history', icon: Clock, label: 'History', roles: ['treasurer', 'counter', 'pastor'] },
+  { to: '/verify', icon: ShieldCheck, label: 'Verify', roles: ['treasurer', 'counter'] },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
