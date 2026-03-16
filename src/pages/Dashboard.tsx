@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, ShieldCheck, Clock } from 'lucide-react';
@@ -15,20 +15,15 @@ import { getLocalOfferings, getLocalDenominations } from '@/lib/localStorage';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-// Pastel card colors cycling through offerings (like eSIM plan cards)
-const CARD_COLORS = [
-  'bg-[#E8E0F0]', // lavender
-  'bg-[#D4E8F0]', // sky
-  'bg-[#F5D5D5]', // rose/pink
-  'bg-[#D6EDE8]', // mint
-];
-
-const STAT_ICONS = [
-  { key: 'total', icon: Banknote },
-  { key: 'count', icon: Calendar },
-  { key: 'avg', icon: TrendingUp },
-  { key: 'highest', icon: TrendingUp },
-];
+// Neumorphic shadow helpers
+const NEU = {
+  raised: 'shadow-[6px_6px_12px_#bebebe,-6px_-6px_12px_#ffffff]',
+  raisedLg: 'shadow-[8px_8px_16px_#bebebe,-8px_-8px_16px_#ffffff]',
+  inset: 'shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff]',
+  insetLg: 'shadow-[inset_6px_6px_12px_#bebebe,inset_-6px_-6px_12px_#ffffff]',
+  subtle: 'shadow-[3px_3px_6px_#bebebe,-3px_-3px_6px_#ffffff]',
+  base: 'bg-[#e0e0e0]',
+};
 
 export default function DashboardPage() {
   const { churchId, profile } = useAuth();
@@ -39,7 +34,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [churchName, setChurchName] = useState('Church');
 
-  // Fetch church name
   useEffect(() => {
     if (!churchId) {
       setChurchName(mockChurch.name);
@@ -55,7 +49,6 @@ export default function DashboardPage() {
       });
   }, [churchId]);
 
-  // Fetch offerings
   useEffect(() => {
     setLoading(true);
     const start = startOfMonth(new Date(year, month));
@@ -64,17 +57,14 @@ export default function DashboardPage() {
     if (!churchId) {
       const localOfferings = getLocalOfferings();
       const allOfferings = [...mockOfferings, ...localOfferings];
-
       const filtered = allOfferings.filter((o) => {
         const offeringDate = new Date(o.date);
         return offeringDate >= start && offeringDate <= end;
       });
-
       const withDenoms = filtered.map((o) => ({
         ...o,
         denominations: getLocalDenominations(o.id) || undefined,
       }));
-
       setOfferings(withDenoms.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       setLoading(false);
       return;
@@ -108,18 +98,19 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-5 pb-20">
-        {/* Header — big bold title like reference */}
-        <div className="pt-2">
+      <div className="space-y-5 pb-24">
+        {/* Header */}
+        <div className="pt-1">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-[32px] font-extrabold tracking-tight leading-tight text-slate-900">
+              <h1 className="text-[28px] font-extrabold tracking-tight leading-tight text-gray-700">
                 Monthly<br />Overview
               </h1>
+              <p className="text-xs text-gray-400 mt-1">{churchName}</p>
             </div>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex items-center gap-2 mt-1">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-[#F0EBF5] border-0 rounded-full font-semibold text-slate-700">
+                <SelectTrigger className={cn("h-8 px-2.5 text-xs border-0 rounded-xl font-semibold text-gray-600", NEU.base, NEU.raised)}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,7 +120,7 @@ export default function DashboardPage() {
                 </SelectContent>
               </Select>
               <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-[#F0EBF5] border-0 rounded-full font-semibold text-slate-700">
+                <SelectTrigger className={cn("h-8 px-2.5 text-xs border-0 rounded-xl font-semibold text-gray-600", NEU.base, NEU.raised)}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -142,53 +133,49 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stat summary — 2x2 pastel grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#E8E0F0] rounded-2xl p-3.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Collected</span>
-              <div className="bg-white/50 rounded-lg p-1"><Banknote className="h-3.5 w-3.5 text-slate-600" /></div>
-            </div>
-            <p className="text-xl font-extrabold text-slate-900">₹{stats.total.toLocaleString('en-IN')}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">{stats.count} verified services</p>
-          </div>
-          <div className="bg-[#D6EDE8] rounded-2xl p-3.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Services</span>
-              <div className="bg-white/50 rounded-lg p-1"><Calendar className="h-3.5 w-3.5 text-slate-600" /></div>
-            </div>
-            <p className="text-xl font-extrabold text-slate-900">{stats.count}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">This month</p>
-          </div>
-          <div className="bg-[#D4E8F0] rounded-2xl p-3.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Average</span>
-              <div className="bg-white/50 rounded-lg p-1"><TrendingUp className="h-3.5 w-3.5 text-slate-600" /></div>
-            </div>
-            <p className="text-xl font-extrabold text-slate-900">₹{Math.round(stats.avg).toLocaleString('en-IN')}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Per service</p>
-          </div>
-          <div className="bg-[#F5D5D5] rounded-2xl p-3.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Highest</span>
-              <div className="bg-white/50 rounded-lg p-1"><TrendingUp className="h-3.5 w-3.5 text-slate-600" /></div>
-            </div>
-            <p className="text-xl font-extrabold text-slate-900">₹{stats.highest.toLocaleString('en-IN')}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Single service</p>
-          </div>
+        {/* Stat Cards — neumorphic raised */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { label: 'Total Collected', value: `₹${stats.total.toLocaleString('en-IN')}`, sub: `${stats.count} verified`, Icon: Banknote },
+            { label: 'Services', value: String(stats.count), sub: 'This month', Icon: Calendar },
+            { label: 'Average', value: `₹${Math.round(stats.avg).toLocaleString('en-IN')}`, sub: 'Per service', Icon: TrendingUp },
+            { label: 'Highest', value: `₹${stats.highest.toLocaleString('en-IN')}`, sub: 'Single service', Icon: TrendingUp },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className={cn("rounded-2xl p-4", NEU.base, NEU.raised)}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{stat.label}</span>
+                <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", NEU.base, NEU.subtle)}>
+                  <stat.Icon className="h-3.5 w-3.5 text-gray-500" />
+                </div>
+              </div>
+              <p className="text-xl font-extrabold text-gray-700">{stat.value}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{stat.sub}</p>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Offering cards — each offering is a full-width pastel card like eSIM plans */}
+        {/* Offering Cards — neumorphic raised, each is its own card */}
         <div className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-600 px-1">
+            {months[month]} {year} Offerings
+          </h2>
+
           {loading ? (
-            <div className="bg-[#F0EBF5] rounded-3xl p-8 text-center text-sm text-slate-400">Loading...</div>
+            <div className={cn("rounded-2xl p-8 text-center text-sm text-gray-400", NEU.base, NEU.insetLg)}>
+              Loading...
+            </div>
           ) : offerings.length === 0 ? (
-            <div className="bg-[#F0EBF5] rounded-3xl p-8 text-center text-sm text-slate-400">
+            <div className={cn("rounded-2xl p-8 text-center text-sm text-gray-400", NEU.base, NEU.insetLg)}>
               No offerings recorded for {months[month]} {year}.
             </div>
           ) : (
             offerings.map((offering, i) => {
-              const bgColor = CARD_COLORS[i % CARD_COLORS.length];
               const isVerified = offering.status === 'verified';
               const isPending = offering.status === 'pending';
 
@@ -198,36 +185,42 @@ export default function DashboardPage() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06 }}
-                  className={`${bgColor} rounded-3xl p-4`}
+                  className={cn("rounded-2xl p-4", NEU.base, NEU.raised)}
                 >
-                  {/* Top row: status icon + date on left, amount on right */}
-                  <div className="flex items-start justify-between">
+                  {/* Top: status + date */}
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {isVerified ? (
-                        <div className="bg-white/50 rounded-full p-1">
-                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                        </div>
-                      ) : (
-                        <div className="bg-white/50 rounded-full p-1">
-                          <Clock className="h-3.5 w-3.5 text-amber-600" />
-                        </div>
-                      )}
-                      <span className="text-sm font-semibold text-slate-700">
+                      <div className={cn(
+                        "w-7 h-7 rounded-lg flex items-center justify-center",
+                        NEU.base,
+                        isVerified ? NEU.inset : NEU.subtle
+                      )}>
+                        {isVerified
+                          ? <ShieldCheck className="h-3.5 w-3.5 text-green-500" />
+                          : <Clock className="h-3.5 w-3.5 text-amber-500" />
+                        }
+                      </div>
+                      <span className="text-sm font-semibold text-gray-600">
                         {format(new Date(offering.date), 'MMM d, yyyy')}
                       </span>
                     </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 bg-white/40 px-2 py-0.5 rounded-full">
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg",
+                      NEU.base,
+                      NEU.inset,
+                      isVerified ? "text-green-500" : isPending ? "text-amber-500" : "text-red-400"
+                    )}>
                       {isVerified ? 'Verified' : isPending ? 'Pending' : 'Rejected'}
                     </span>
                   </div>
 
-                  {/* Notes / description */}
-                  <p className="text-xs text-slate-500 mt-2">
+                  {/* Notes */}
+                  <p className="text-xs text-gray-400 mt-2">
                     {offering.notes || 'General Offering'}
                   </p>
 
-                  {/* Amount — big and bold */}
-                  <p className="text-2xl font-extrabold text-slate-900 mt-1 text-right">
+                  {/* Amount */}
+                  <p className="text-2xl font-extrabold text-gray-700 mt-1 text-right">
                     ₹{Number(offering.total_amount).toLocaleString('en-IN')}
                   </p>
                 </motion.div>
@@ -236,22 +229,35 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Action buttons — dark pill like reference "PLAN DETAILS" / "TOP UP" */}
-        <div className="flex gap-2.5">
+        {/* Action buttons — neumorphic */}
+        <div className="flex gap-3">
           <Link to="/new-offering" className="flex-1">
-            <Button className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm active:scale-[0.98] transition-transform">
-              <PlusCircle className="h-4 w-4 mr-2" />
+            <button className={cn(
+              "w-full h-12 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200",
+              "bg-gray-700 text-gray-100",
+              "shadow-[6px_6px_12px_#bebebe,-6px_-6px_12px_#ffffff]",
+              "hover:shadow-[8px_8px_16px_#bebebe,-8px_-8px_16px_#ffffff]",
+              "active:shadow-[inset_4px_4px_8px_#4a4a4a,inset_-4px_-4px_8px_#8a8a8a]"
+            )}>
+              <PlusCircle className="h-4 w-4" />
               NEW OFFERING
-            </Button>
+            </button>
           </Link>
-          <Button
-            className="h-12 rounded-2xl bg-white/60 hover:bg-white/80 text-slate-700 font-bold text-sm border-0 px-5 active:scale-[0.98] transition-transform"
+          <button
             onClick={handleExportPDF}
             disabled={offerings.filter(o => o.status === 'verified').length === 0}
+            className={cn(
+              "h-12 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 px-5 transition-all duration-200",
+              NEU.base,
+              NEU.raised,
+              "text-gray-500 hover:text-gray-700",
+              "active:shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff]",
+              "disabled:opacity-40"
+            )}
           >
-            <FileText className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4" />
             PDF
-          </Button>
+          </button>
         </div>
       </div>
     </AppLayout>
