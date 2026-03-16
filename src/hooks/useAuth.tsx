@@ -10,7 +10,6 @@ interface AuthContextType {
   role: UserRole | null;
   churchId: string | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -70,18 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
-  const signUp = async (email: string, password: string, name: string, role: UserRole) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, role },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) throw error;
-  };
-
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -95,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const churchId = profile?.church_id ?? null;
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, role, churchId, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, role, churchId, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

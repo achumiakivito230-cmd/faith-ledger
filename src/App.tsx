@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import LoginPage from "./pages/Login";
-import SignupPage from "./pages/Signup";
 import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
@@ -57,7 +56,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
-      <Route path="/signup" element={<AuthRoute><SignupPage /></AuthRoute>} />
       <Route path="/church-setup" element={<ChurchSetupRoute><ChurchSetupPage /></ChurchSetupRoute>} />
       <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />

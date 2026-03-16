@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,13 +89,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          New church?{' '}
-          <Link to="/signup" className="text-primary hover:underline">
-            Create an account
-          </Link>
-        </p>
       </motion.div>
     </div>
   );

@@ -6,6 +6,7 @@ export interface Profile {
   user_id: string;
   name: string;
   email: string;
+  phone?: string;
   church_id: string | null;
   is_active: boolean;
   last_login: string | null;
