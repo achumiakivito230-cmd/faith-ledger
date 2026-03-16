@@ -2,18 +2,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "env": [
-    {
-      "key": "VITE_SUPABASE_URL",
-      "value": "https://vmdipvvnqsraoyjbevdk.supabase.co"
-    },
-    {
-      "key": "VITE_SUPABASE_PUBLISHABLE_KEY",
-      "value": "sb_publishable_kaJBX5b_YrYmOMg7xriTlw_RDAh1JQq"
-    },
-    {
-      "key": "VITE_SUPABASE_PROJECT_ID",
-      "value": "vmdipvvnqsraoyjbevdk"
-    }
-  ]
+  "env": {
+    "VITE_SUPABASE_URL": "https://vmdipvvnqsraoyjbevdk.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_kaJBX5b_YrYmOMg7xriTlw_RDAh1JQq",
+    "VITE_SUPABASE_PROJECT_ID": "vmdipvvnqsraoyjbevdk"
+  }
 }
