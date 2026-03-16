@@ -14,16 +14,268 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["audit_action"]
+          church_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          offering_id: string | null
+          performed_by_user_id: string
+          resource_id: string | null
+          resource_type: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["audit_action"]
+          church_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          offering_id?: string | null
+          performed_by_user_id: string
+          resource_id?: string | null
+          resource_type: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["audit_action"]
+          church_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          offering_id?: string | null
+          performed_by_user_id?: string
+          resource_id?: string | null
+          resource_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      churches: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      denominations: {
+        Row: {
+          id: string
+          note_10: number
+          note_100: number
+          note_20: number
+          note_200: number
+          note_50: number
+          note_500: number
+          offering_id: string
+          total_notes: number
+        }
+        Insert: {
+          id?: string
+          note_10?: number
+          note_100?: number
+          note_20?: number
+          note_200?: number
+          note_50?: number
+          note_500?: number
+          offering_id: string
+          total_notes?: number
+        }
+        Update: {
+          id?: string
+          note_10?: number
+          note_100?: number
+          note_20?: number
+          note_200?: number
+          note_50?: number
+          note_500?: number
+          offering_id?: string
+          total_notes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "denominations_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: true
+            referencedRelation: "offerings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offerings: {
+        Row: {
+          church_id: string
+          counted_by_user_id: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["offering_status"]
+          total_amount: number
+          updated_at: string
+          verified_at: string | null
+          verified_by_user_id: string | null
+        }
+        Insert: {
+          church_id: string
+          counted_by_user_id: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["offering_status"]
+          total_amount?: number
+          updated_at?: string
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+        }
+        Update: {
+          church_id?: string
+          counted_by_user_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["offering_status"]
+          total_amount?: number
+          updated_at?: string
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offerings_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          church_id: string | null
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          last_login: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          church_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          church_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "treasurer" | "counter" | "pastor"
+      audit_action:
+        | "create_offering"
+        | "verify_offering"
+        | "reject_offering"
+        | "login"
+        | "logout"
+        | "change_password"
+        | "create_user"
+      offering_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +402,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["treasurer", "counter", "pastor"],
+      audit_action: [
+        "create_offering",
+        "verify_offering",
+        "reject_offering",
+        "login",
+        "logout",
+        "change_password",
+        "create_user",
+      ],
+      offering_status: ["pending", "verified", "rejected"],
+    },
   },
 } as const
