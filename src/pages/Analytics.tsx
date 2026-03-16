@@ -104,106 +104,17 @@ export default function AnalyticsPage() {
           />
         </div>
 
-        {/* Charts Grid - Asymmetric Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Revenue over time - spans 2 columns */}
-          <div className="lg:col-span-2 rounded-xl bg-card border border-border/40 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-card-foreground">Revenue Over Time</h2>
-              <p className="text-xs text-muted-foreground mt-1">Daily offering amounts</p>
+        {/* Charts Grid - Testing */}
+        <div className="grid grid-cols-1 gap-6">
+          {/* Data Debug */}
+          <div className="rounded-xl bg-card border border-border/40 p-6">
+            <h2 className="text-lg font-semibold text-card-foreground mb-4">Data Summary</h2>
+            <div className="space-y-2 text-sm">
+              <p>Total Offerings: {allOfferings.length}</p>
+              <p>Revenue Data Points: {revenueByDate.length}</p>
+              <p>Denominations: {byDenomination.length}</p>
+              <p>Status Summary: {statusSummary.length}</p>
             </div>
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={revenueByDate} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.2} />
-                <XAxis dataKey="date" stroke="var(--color-muted-foreground)" style={{ fontSize: '12px' }} />
-                <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                  formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Amount']}
-                  labelStyle={{ color: 'var(--color-foreground)' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="amount"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', r: 5, strokeWidth: 0 }}
-                  activeDot={{ r: 7 }}
-                  fillOpacity={1}
-                  fill="url(#colorAmount)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* By Denomination - Pie Chart */}
-          <div className="rounded-xl bg-card border border-border/40 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-card-foreground">By Denomination</h2>
-              <p className="text-xs text-muted-foreground mt-1">Currency breakdown</p>
-            </div>
-            <ResponsiveContainer width="100%" height={320}>
-              <PieChart>
-                <Pie
-                  data={byDenomination}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {byDenomination.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => `₹${value.toLocaleString('en-IN')}`}
-                  contentStyle={{
-                    backgroundColor: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '8px'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Verified vs Pending - Bar Chart - spans full width */}
-          <div className="lg:col-span-3 rounded-xl bg-card border border-border/40 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-card-foreground">Verification Status</h2>
-              <p className="text-xs text-muted-foreground mt-1">Verified vs pending offerings</p>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={statusSummary} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.2} />
-                <XAxis dataKey="name" stroke="var(--color-muted-foreground)" style={{ fontSize: '12px' }} />
-                <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '8px'
-                  }}
-                  formatter={(value) => `₹${value.toLocaleString('en-IN')}`}
-                  labelStyle={{ color: 'var(--color-foreground)' }}
-                />
-                <Bar dataKey="amount" fill="#10b981" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </div>
