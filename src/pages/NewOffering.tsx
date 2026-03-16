@@ -99,6 +99,7 @@ export default function NewOfferingPage() {
       navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to submit offering';
+      console.error('Submit error:', err);
       toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
