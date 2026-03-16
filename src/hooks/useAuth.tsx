@@ -64,7 +64,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void syncSession(nextSession);
     });
 
-    void supabase.auth.getSession().then(({ data: { session } }) => syncSession(session));
+    void supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        await syncSession(session);
+      } else {
+        // Auto-login with default test credentials
+        try {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: 'test@church.com',
+            password: 'Test123456',
+          });
+          if (!error) {
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            await syncSession(newSession);
+          } else {
+            console.error('Auto-login failed:', error.message);
+            await syncSession(null);
+          }
+        } catch (err) {
+          console.error('Auto-login error:', err);
+          await syncSession(null);
+        }
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, [fetchProfile]);

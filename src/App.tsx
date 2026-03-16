@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import LoginPage from "./pages/Login";
 import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
@@ -55,7 +54,7 @@ function ChurchSetupRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
       <Route path="/church-setup" element={<ChurchSetupRoute><ChurchSetupPage /></ChurchSetupRoute>} />
       <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />
