@@ -27,45 +27,11 @@ export default function AnalyticsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-lg font-semibold text-card-foreground">Analytics</h1>
-
-        {isEmpty && (
-          <div className="rounded-lg bg-accent/50 border border-border p-6 text-center">
-            <p className="text-muted-foreground">No offering data yet. Create offerings in "New Offering" to see analytics.</p>
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            title="Total Collected"
-            value={`₹${stats.total.toLocaleString('en-IN')}`}
-            icon={Banknote}
-            trend={stats.count > 0 ? `${stats.count} offerings` : 'No data'}
-          />
-          <StatCard
-            title="Verified"
-            value={`₹${stats.verified.toLocaleString('en-IN')}`}
-            icon={CheckCircle}
-            trend={`${allOfferings.filter((o) => o.status === 'verified').length} verified`}
-          />
-          <StatCard
-            title="Pending Verification"
-            value={stats.pending}
-            icon={Clock}
-            trend={`${stats.pending} offerings waiting`}
-          />
-          <StatCard
-            title="Average Offering"
-            value={`₹${stats.count > 0 ? Math.round(stats.total / stats.count).toLocaleString('en-IN') : '0'}`}
-            icon={TrendingUp}
-            trend={`Per offering`}
-          />
-        </div>
-
-        {/* Charts section - temporarily removed to debug */}
-        <div className="rounded-lg bg-accent/50 border border-border p-6 text-center">
-          <p className="text-muted-foreground">Charts loading...</p>
+        <h1 className="text-lg font-semibold text-card-foreground">Analytics Test</h1>
+        <div className="p-4 bg-blue-100 rounded">
+          <p>Data count: {allOfferings.length}</p>
+          <p>Total: ₹{stats.total}</p>
+          <p>Verified: ₹{stats.verified}</p>
         </div>
       </div>
     </AppLayout>
