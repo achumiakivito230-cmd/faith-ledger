@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import AppLayout from '@/components/AppLayout';
 import StatCard from '@/components/StatCard';
+import BarChartMedium from '@/components/ui/bar-chart-medium';
 import { mockOfferings } from '@/lib/mockData';
 import { getLocalOfferings } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock } from 'lucide-react';
@@ -17,6 +18,14 @@ export default function AnalyticsPage() {
     return { total, verified, pending, count: allOfferings.length };
   }, [allOfferings]);
 
+  // Build chart data from offerings — group by notes field (service type)
+  const chartData = useMemo(() => {
+    return allOfferings.map((o) => ({
+      key: o.notes || `Offering ${o.id.slice(-2)}`,
+      data: o.total_amount,
+    }));
+  }, [allOfferings]);
+
   return (
     <AppLayout>
       <div className="space-y-6 pb-12">
@@ -26,7 +35,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
             title="Total Collected"
             value={`₹${stats.total.toLocaleString('en-IN')}`}
@@ -52,8 +61,10 @@ export default function AnalyticsPage() {
             trend="Per offering"
           />
         </div>
+
+        {/* Offering Report Bar Chart */}
+        <BarChartMedium chartData={chartData} />
       </div>
     </AppLayout>
   );
 }
-

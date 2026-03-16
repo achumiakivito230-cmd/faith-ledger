@@ -130,10 +130,10 @@ export default function DashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={<Banknote className="h-4 w-4" />} />
-          <StatCard title="Services Recorded" value={String(stats.count)} icon={<Calendar className="h-4 w-4" />} />
-          <StatCard title="Average per Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={<TrendingUp className="h-4 w-4" />} />
-          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={<TrendingUp className="h-4 w-4" />} />
+          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={Banknote} />
+          <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} />
+          <StatCard title="Average per Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} />
+          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} />
         </div>
 
         {/* Actions */}
