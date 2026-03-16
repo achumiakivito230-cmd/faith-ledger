@@ -1,28 +1,24 @@
 import { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 
 interface StatCardProps {
   title: string;
-  value: string;
+  value: string | number;
   icon: ReactNode;
+  trend?: string;
   subtitle?: string;
 }
 
-export default function StatCard({ title, value, icon, subtitle }: StatCardProps) {
+export default function StatCard({ title, value, icon, trend, subtitle }: StatCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl bg-card p-4 shadow-card"
-    >
+    <div className="rounded-xl bg-card p-4 shadow-card border border-border/40 hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="flex-1">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{title}</p>
-          <p className="mt-1 text-2xl font-semibold font-tabular text-card-foreground">{value}</p>
-          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+          <p className="mt-2 text-2xl font-bold text-card-foreground">{value}</p>
+          {(trend || subtitle) && <p className="mt-1 text-xs text-muted-foreground">{trend || subtitle}</p>}
         </div>
-        <div className="rounded-lg bg-accent p-2 text-muted-foreground">{icon}</div>
+        <div className="ml-4 rounded-lg bg-accent/50 p-2 text-accent-foreground flex-shrink-0">{icon}</div>
       </div>
-    </motion.div>
+    </div>
   );
 }
