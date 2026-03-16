@@ -17,6 +17,13 @@ import { getLocalOfferings, getLocalDenominations } from '@/lib/localStorage';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+const PASTEL = {
+  lavender: 'bg-[#E8E0F0]',
+  mint: 'bg-[#D6EDE8]',
+  rose: 'bg-[#F5D5D5]',
+  sky: 'bg-[#D4E8F0]',
+};
+
 export default function DashboardPage() {
   const { churchId, profile } = useAuth();
   const now = new Date();
@@ -49,7 +56,6 @@ export default function DashboardPage() {
     const end = endOfMonth(new Date(year, month));
 
     if (!churchId) {
-      // Combine mock data with localStorage data
       const localOfferings = getLocalOfferings();
       const allOfferings = [...mockOfferings, ...localOfferings];
 
@@ -58,7 +64,6 @@ export default function DashboardPage() {
         return offeringDate >= start && offeringDate <= end;
       });
 
-      // Add denominations to offerings
       const withDenoms = filtered.map((o) => ({
         ...o,
         denominations: getLocalDenominations(o.id) || undefined,
@@ -97,90 +102,93 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-5 pb-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-card-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Monthly offering overview</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="w-[130px] h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((m, i) => (
-                  <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="w-[90px] h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[2024, 2025, 2026, 2027].map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="pt-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900">Dashboard</h1>
+              <p className="text-sm text-slate-400 mt-0.5">Monthly offering overview</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map((y) => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={Banknote} />
-          <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} />
-          <StatCard title="Average per Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} />
-          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} />
+        {/* Pastel Stat Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={Banknote} trend={`${stats.count} services`} bgColor={PASTEL.lavender} />
+          <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} trend="This month" bgColor={PASTEL.mint} />
+          <StatCard title="Average / Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} trend="Per offering" bgColor={PASTEL.sky} />
+          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} trend="Single service" bgColor={PASTEL.rose} />
         </div>
 
         {/* Actions */}
         <div className="flex gap-2">
           <Link to="/new-offering">
-            <Button size="sm" className="active:scale-[0.98] transition-transform">
+            <Button size="sm" className="rounded-xl bg-slate-900 text-white active:scale-[0.98] transition-transform">
               <PlusCircle className="h-4 w-4 mr-1" />
               New Offering
             </Button>
           </Link>
-          <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={offerings.filter(o => o.status === 'verified').length === 0}>
+          <Button variant="outline" size="sm" className="rounded-xl border-0 bg-white/60" onClick={handleExportPDF} disabled={offerings.filter(o => o.status === 'verified').length === 0}>
             <FileText className="h-4 w-4 mr-1" />
             Export PDF
           </Button>
         </div>
 
-        {/* Offerings list */}
-        <div className="rounded-xl bg-card shadow-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-sm font-medium text-card-foreground">
+        {/* Offerings list — pastel container */}
+        <div className="bg-[#F5F0FA] rounded-3xl overflow-hidden">
+          <div className="px-4 pt-4 pb-2">
+            <h2 className="text-sm font-bold text-slate-900">
               {months[month]} {year} Offerings
             </h2>
+            <p className="text-[10px] text-slate-400 mt-0.5">Recorded services this month</p>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">Loading...</div>
+            <div className="p-8 text-center text-sm text-slate-400">Loading...</div>
           ) : offerings.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
+            <div className="p-8 text-center text-sm text-slate-400">
               No offerings recorded for {months[month]} {year}.
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-white/50 px-4 pb-3">
               {offerings.map((offering, i) => (
                 <motion.div
                   key={offering.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.03 }}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between py-2.5"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground w-24">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs text-slate-500 w-20">
                       {format(new Date(offering.date), 'MMM d, yyyy')}
                     </span>
                     <StatusBadge status={offering.status} />
                   </div>
-                  <span className="text-sm font-semibold font-tabular text-card-foreground">
+                  <span className="text-sm font-bold text-slate-900">
                     ₹{Number(offering.total_amount).toLocaleString('en-IN')}
                   </span>
                 </motion.div>
