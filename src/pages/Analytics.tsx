@@ -60,10 +60,18 @@ export default function AnalyticsPage() {
     return { total, verified, pending, count: allOfferings.length };
   }, [allOfferings]);
 
+  const isEmpty = allOfferings.length === 0;
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <h1 className="text-lg font-semibold text-card-foreground">Analytics</h1>
+
+        {isEmpty && (
+          <div className="rounded-lg bg-accent/50 border border-border p-6 text-center">
+            <p className="text-muted-foreground">No offering data yet. Create offerings in "New Offering" to see analytics.</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
