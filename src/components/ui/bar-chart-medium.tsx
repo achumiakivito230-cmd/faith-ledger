@@ -211,16 +211,16 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
           --reaviz-gridline-stroke: rgba(74, 85, 104, 0.6);
         }
       `}</style>
-      <div className="flex flex-col justify-between pt-4 pb-4 bg-card rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-border/40 w-full overflow-hidden">
+      <div className="flex flex-col justify-between pt-4 pb-4 bg-[#F5F0FA] rounded-3xl w-full overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 pt-2 pb-6">
-          <h3 className="text-2xl font-bold text-card-foreground">
+        <div className="flex justify-between items-center px-5 pt-1 pb-4">
+          <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
             Offering Report
           </h3>
           <select
             value={selectedTimePeriod}
             onChange={(e) => setSelectedTimePeriod(e.target.value)}
-            className="bg-muted text-foreground p-2 rounded-md text-sm focus:ring-2 focus:ring-primary outline-none"
+            className="bg-white/60 text-slate-700 p-1.5 rounded-xl text-xs font-medium outline-none"
             aria-label="Select time period for offering report"
           >
             {TIME_PERIOD_OPTIONS.map(option => (
@@ -231,72 +231,74 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
           </select>
         </div>
 
-        {/* Bar Chart */}
-        <div className="h-[260px] px-4 mb-4">
-          <BarChart
-            height={260}
-            id="offering-bar-chart"
-            data={validatedChartData}
-            yAxis={
-              <LinearYAxis
-                axisLine={null}
-                tickSeries={<LinearYAxisTickSeries line={null} label={null} tickSize={10} />}
-              />
-            }
-            xAxis={
-              <LinearXAxis
-                type="category"
-                tickSeries={
-                  <LinearXAxisTickSeries
-                    label={
-                      <LinearXAxisTickLabel
-                        padding={10}
-                        rotation={-45}
-                        format={text => typeof text === 'string' ? (text.length > 8 ? `${text.slice(0, 8)}…` : text) : ''}
-                        fill="var(--reaviz-tick-fill)"
-                      />
-                    }
-                    tickSize={10}
-                  />
-                }
-              />
-            }
-            series={
-              <BarSeries
-                bar={
-                  <Bar
-                    glow={{ blur: 20, opacity: 0.5 }}
-                    gradient={null}
-                  />
-                }
-                colorScheme={BAR_CHART_COLOR_SCHEME}
-                padding={0.2}
-              />
-            }
-            gridlines={<GridlineSeries line={<Gridline strokeColor="var(--reaviz-gridline-stroke)" />} />}
-          />
+        {/* Bar Chart — horizontally scrollable on small screens */}
+        <div className="overflow-x-auto px-2 mb-3">
+          <div style={{ minWidth: `${Math.max(validatedChartData.length * 56, 300)}px` }} className="h-[220px]">
+            <BarChart
+              height={220}
+              id="offering-bar-chart"
+              data={validatedChartData}
+              yAxis={
+                <LinearYAxis
+                  axisLine={null}
+                  tickSeries={<LinearYAxisTickSeries line={null} label={null} tickSize={10} />}
+                />
+              }
+              xAxis={
+                <LinearXAxis
+                  type="category"
+                  tickSeries={
+                    <LinearXAxisTickSeries
+                      label={
+                        <LinearXAxisTickLabel
+                          padding={8}
+                          rotation={-35}
+                          format={text => typeof text === 'string' ? text : ''}
+                          fill="var(--reaviz-tick-fill)"
+                        />
+                      }
+                      tickSize={10}
+                    />
+                  }
+                />
+              }
+              series={
+                <BarSeries
+                  bar={
+                    <Bar
+                      glow={{ blur: 15, opacity: 0.4 }}
+                      gradient={null}
+                    />
+                  }
+                  colorScheme={BAR_CHART_COLOR_SCHEME}
+                  padding={0.25}
+                />
+              }
+              gridlines={<GridlineSeries line={<Gridline strokeColor="var(--reaviz-gridline-stroke)" />} />}
+            />
+          </div>
         </div>
 
         {/* Summary Stats */}
-        <div className="flex flex-col sm:flex-row w-full px-6 justify-between pb-2 pt-6 gap-4 sm:gap-8">
+        <div className="grid grid-cols-2 gap-3 px-5 pb-2 pt-5">
           {displayStats.map(stat => (
-            <div key={stat.id} className="flex flex-col gap-2 w-full sm:w-1/2">
-              <span className="text-lg text-muted-foreground">{stat.title}</span>
-              <div className="flex items-center gap-2">
+            <div key={stat.id} className="bg-white/50 rounded-2xl p-3 flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{stat.title}</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <CountUp
-                  className="font-mono text-3xl font-semibold text-card-foreground"
+                  className="font-mono text-xl font-bold text-slate-900"
                   start={stat.countFrom || 0}
                   end={stat.count}
                   duration={2.5}
                   prefix={stat.id === 'total' ? '₹' : ''}
                   separator=","
                 />
-                <div className={`flex ${stat.trendBgColor} p-1 px-2 items-center rounded-full ${stat.trendColor} text-sm`}>
+                <div className={`flex ${stat.trendBgColor} p-0.5 px-1.5 items-center rounded-full ${stat.trendColor} text-[10px]`}>
                   <stat.TrendIconSvg strokeColor={stat.trendColor === 'text-[#F08083]' ? '#F08083' : '#40E5D1'} />
                   {stat.percentage}%
                 </div>
               </div>
-              <span className="text-muted-foreground text-sm">
+              <span className="text-slate-400 text-[10px] leading-tight">
                 {stat.comparisonText}
               </span>
             </div>
@@ -304,24 +306,24 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
         </div>
 
         {/* Detailed Metrics List */}
-        <div className="flex flex-col px-6 font-mono divide-y divide-border mt-4">
+        <div className="flex flex-col px-5 divide-y divide-white/40 mt-3">
           {displayMetrics.map((metric) => (
             <motion.div
               key={metric.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: metric.delay }}
-              className="flex w-full py-4 items-center gap-2"
+              className="flex w-full py-3 items-center gap-1.5"
             >
-              <div className="flex flex-row gap-2 items-center text-base w-1/2 text-muted-foreground">
-                <metric.Icon fill={metric.iconFillColor} />
-                <span className="truncate" title={metric.tooltip}>
+              <div className="flex flex-row gap-1.5 items-center text-xs w-[55%] text-slate-500 min-w-0">
+                <metric.Icon fill={metric.iconFillColor} className="shrink-0" />
+                <span className="break-words leading-tight" title={metric.tooltip}>
                   {metric.label}
                 </span>
               </div>
-              <div className="flex gap-2 w-1/2 justify-end items-center">
-                <span className="font-semibold text-xl text-card-foreground">{metric.value}</span>
-                <metric.TrendIcon baseColor={metric.trendBaseColor} strokeColor={metric.trendStrokeColor} />
+              <div className="flex gap-1.5 w-[45%] justify-end items-center">
+                <span className="font-bold text-base text-slate-900 whitespace-nowrap">{metric.value}</span>
+                <metric.TrendIcon baseColor={metric.trendBaseColor} strokeColor={metric.trendStrokeColor} className="shrink-0" />
               </div>
             </motion.div>
           ))}
