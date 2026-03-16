@@ -12,6 +12,7 @@ import { Banknote, TrendingUp, Calendar, FileText, PlusCircle } from 'lucide-rea
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Offering } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
+import { mockChurch, mockOfferings } from '@/lib/mockData';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -26,7 +27,10 @@ export default function DashboardPage() {
 
   // Fetch church name
   useEffect(() => {
-    if (!churchId) return;
+    if (!churchId) {
+      setChurchName(mockChurch.name);
+      return;
+    }
     supabase
       .from('churches')
       .select('name')
@@ -39,10 +43,20 @@ export default function DashboardPage() {
 
   // Fetch offerings
   useEffect(() => {
-    if (!churchId) return;
     setLoading(true);
     const start = startOfMonth(new Date(year, month));
     const end = endOfMonth(new Date(year, month));
+
+    if (!churchId) {
+      // Use mock data when no churchId
+      const filtered = mockOfferings.filter((o) => {
+        const offeringDate = new Date(o.date);
+        return offeringDate >= start && offeringDate <= end;
+      });
+      setOfferings(filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setLoading(false);
+      return;
+    }
 
     supabase
       .from('offerings')
