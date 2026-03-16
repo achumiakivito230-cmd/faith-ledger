@@ -41,7 +41,8 @@ export default function ChurchSetupPage() {
       // Force reload to pick up new profile
       window.location.href = '/';
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create church';
+      console.error('Church setup error:', err);
+      const message = err instanceof Error ? err.message : typeof err === 'object' && err !== null && 'message' in err ? String((err as Record<string, unknown>).message) : 'Failed to create church';
       toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
