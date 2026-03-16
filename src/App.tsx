@@ -9,6 +9,7 @@ import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
 import HistoryPage from "./pages/History";
 import VerifyPage from "./pages/Verify";
+import AnalyticsPage from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ function AppRoutes() {
       <Route path="/new-offering" element={<NewOfferingPage />} />
       <Route path="/history" element={<HistoryPage />} />
       <Route path="/verify" element={<VerifyPage />} />
+      <Route path="/analytics" element={<AnalyticsPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
