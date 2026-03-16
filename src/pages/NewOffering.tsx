@@ -144,7 +144,7 @@ export default function NewOfferingPage() {
 
           <div className="divide-y divide-border">
             {DENOMINATIONS.map((denom) => {
-              const increments = [1, 5, 10, 20, 50];
+              const increments = [1, 5, 10];
               const currentCount = counts[denom.field] || 0;
               return (
                 <motion.div
