@@ -85,21 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session) {
         await syncSession(session);
       } else {
-        // Use mock user for demo/testing (no real auth)
-        setUser(MOCK_USER);
-        setProfile({
-          id: 'mock-profile-123',
-          user_id: 'mock-user-123',
-          name: 'Demo User',
-          email: 'demo@church.com',
-          phone: '',
-          church_id: null,
-          is_active: true,
-          last_login: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-        setRole('treasurer');
+        // No session - require real login
+        setUser(null);
+        setProfile(null);
+        setRole(null);
         setLoading(false);
       }
     });
