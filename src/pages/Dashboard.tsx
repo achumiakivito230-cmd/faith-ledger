@@ -13,6 +13,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Offering } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
 import { mockChurch, mockOfferings } from '@/lib/mockData';
+import { getLocalOfferings, getLocalDenominations } from '@/lib/localStorage';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -48,12 +49,22 @@ export default function DashboardPage() {
     const end = endOfMonth(new Date(year, month));
 
     if (!churchId) {
-      // Use mock data when no churchId
-      const filtered = mockOfferings.filter((o) => {
+      // Combine mock data with localStorage data
+      const localOfferings = getLocalOfferings();
+      const allOfferings = [...mockOfferings, ...localOfferings];
+
+      const filtered = allOfferings.filter((o) => {
         const offeringDate = new Date(o.date);
         return offeringDate >= start && offeringDate <= end;
       });
-      setOfferings(filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
+      // Add denominations to offerings
+      const withDenoms = filtered.map((o) => ({
+        ...o,
+        denominations: getLocalDenominations(o.id) || undefined,
+      }));
+
+      setOfferings(withDenoms.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       setLoading(false);
       return;
     }
