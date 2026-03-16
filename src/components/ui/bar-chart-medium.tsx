@@ -212,16 +212,16 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
           --reaviz-gridline-stroke: rgba(74, 85, 104, 0.6);
         }
       `}</style>
-      <div className="flex flex-col justify-between pt-4 pb-4 bg-[#F5F0FA] rounded-3xl w-full overflow-hidden">
+      <div className="flex flex-col justify-between pt-4 pb-4 bg-[#fdf2d6] rounded-3xl w-full overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center px-5 pt-1 pb-4">
-          <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+          <h3 className="text-lg font-extrabold text-foreground tracking-tight">
             Offering Report
           </h3>
           <select
             value={selectedTimePeriod}
             onChange={(e) => setSelectedTimePeriod(e.target.value)}
-            className="bg-white/60 text-slate-700 p-1.5 rounded-xl text-xs font-medium outline-none"
+            className="bg-white/60 text-foreground p-1.5 rounded-xl text-xs font-medium outline-none"
             aria-label="Select time period for offering report"
           >
             {TIME_PERIOD_OPTIONS.map(option => (
@@ -285,10 +285,10 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
         <div className="grid grid-cols-2 gap-3 px-5 pb-2 pt-5">
           {displayStats.map(stat => (
             <div key={stat.id} className="bg-white/50 rounded-2xl p-3 flex flex-col gap-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{stat.title}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{stat.title}</span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <CountUp
-                  className="font-mono text-xl font-bold text-slate-900"
+                  className="font-mono text-xl font-bold text-foreground"
                   start={stat.countFrom || 0}
                   end={stat.count}
                   duration={2.5}
@@ -300,7 +300,7 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
                   {stat.percentage}%
                 </div>
               </div>
-              <span className="text-slate-400 text-[10px] leading-tight">
+              <span className="text-muted-foreground text-[10px] leading-tight">
                 {stat.comparisonText}
               </span>
             </div>
@@ -317,14 +317,14 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
               transition={{ delay: metric.delay }}
               className="flex w-full py-3 items-center gap-1.5"
             >
-              <div className="flex flex-row gap-1.5 items-center text-xs w-[55%] text-slate-500 min-w-0">
+              <div className="flex flex-row gap-1.5 items-center text-xs w-[55%] text-muted-foreground min-w-0">
                 <metric.Icon fill={metric.iconFillColor} className="shrink-0" />
                 <span className="break-words leading-tight" title={metric.tooltip}>
                   {metric.label}
                 </span>
               </div>
               <div className="flex gap-1.5 w-[45%] justify-end items-center">
-                <span className="font-bold text-base text-slate-900 whitespace-nowrap">{metric.value}</span>
+                <span className="font-bold text-base text-foreground whitespace-nowrap">{metric.value}</span>
                 <metric.TrendIcon baseColor={metric.trendBaseColor} strokeColor={metric.trendStrokeColor} className="shrink-0" />
               </div>
             </motion.div>

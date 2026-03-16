@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { motion } from 'framer-motion';
 import { CalendarIcon, Send } from 'lucide-react';
+import { AnimatedText } from '@/components/ui/animated-text';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,15 @@ import { saveLocalOffering } from '@/lib/localStorage';
 
 // Simple ID generator
 const generateId = () => `offering-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const DENOM_COLORS = [
+  'bg-[#fef3c7]', // warm yellow
+  'bg-[#fde8e8]', // soft blush
+  'bg-[#fdf2d6]', // sand
+  'bg-[#f5e8d2]', // linen
+  'bg-[#fef3c7]', // warm yellow
+  'bg-[#fde8e8]', // soft blush
+];
 
 export default function NewOfferingPage() {
   const { user, churchId } = useAuth();
@@ -103,15 +113,15 @@ export default function NewOfferingPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-lg space-y-4">
-        <div>
-          <h1 className="text-lg font-semibold text-card-foreground">New Offering Entry</h1>
-          <p className="text-sm text-muted-foreground">Enter denomination counts from the service</p>
+      <div className="mx-auto max-w-lg space-y-4 pb-16">
+        <div className="pt-1">
+          <AnimatedText text="New Offering" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
+          <p className="text-sm text-muted-foreground mt-2">Enter denomination counts from the service</p>
         </div>
 
         {/* Date picker */}
-        <div className="rounded-xl bg-card p-4 shadow-card space-y-3">
-          <Label>Service Date</Label>
+        <div className="rounded-2xl bg-[#fef3c7] p-4 space-y-3">
+          <Label className="text-sm font-bold text-foreground">Service Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
@@ -133,34 +143,36 @@ export default function NewOfferingPage() {
         </div>
 
         {/* Denomination grid */}
-        <div className="rounded-xl bg-card shadow-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-sm font-medium text-card-foreground">Denomination Counts</h2>
+        <div>
+          <div className="mb-2">
+            <h2 className="text-sm font-bold text-foreground">Denomination Counts</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Tap buttons to count notes</p>
           </div>
 
-          <div className="divide-y divide-border">
-            {DENOMINATIONS.map((denom) => {
+          <div className="space-y-2.5">
+            {DENOMINATIONS.map((denom, i) => {
               const increments = [1, 5, 10];
               const currentCount = counts[denom.field] || 0;
               return (
                 <motion.div
                   key={denom.field}
-                  initial={{ opacity: 0, y: 4 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="px-4 py-3 space-y-2"
+                  transition={{ delay: i * 0.04 }}
+                  className={`${DENOM_COLORS[i]} rounded-2xl p-3.5 space-y-2`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-card-foreground">{denom.label}</span>
-                      <span className="text-xs text-muted-foreground">{currentCount} notes</span>
+                      <span className="text-sm font-bold text-foreground">{denom.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{currentCount} notes</span>
                     </div>
-                    <span className="font-tabular text-sm font-semibold text-card-foreground">
+                    <span className="font-tabular text-base font-extrabold text-foreground">
                       ₹{(denom.value * currentCount).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {increments.map((inc) => (
-                      <div key={inc} className="flex gap-0.5">
+                      <div key={inc} className="flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => {
@@ -168,9 +180,9 @@ export default function NewOfferingPage() {
                             if (next >= 0) setCounts((prev) => ({ ...prev, [denom.field]: next }));
                           }}
                           disabled={currentCount < inc}
-                          className="h-8 px-2 rounded-l-md text-xs font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="glow-btn glow-btn-red"
                         >
-                          −{inc}
+                          <span className="glow-btn-inner">−{inc}</span>
                         </button>
                         <button
                           type="button"
@@ -179,9 +191,9 @@ export default function NewOfferingPage() {
                             if (next <= 999) setCounts((prev) => ({ ...prev, [denom.field]: next }));
                           }}
                           disabled={currentCount + inc > 999}
-                          className="h-8 px-2 rounded-r-md text-xs font-semibold bg-success text-success-foreground hover:bg-success/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="glow-btn glow-btn-green"
                         >
-                          +{inc}
+                          <span className="glow-btn-inner">+{inc}</span>
                         </button>
                       </div>
                     ))}
@@ -193,7 +205,7 @@ export default function NewOfferingPage() {
         </div>
 
         {/* Sticky footer */}
-        <div className="sticky bottom-4 rounded-xl bg-card p-4 shadow-elevated">
+        <div className="sticky bottom-4 rounded-2xl bg-[#fde8e8] p-4 shadow-elevated">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Total Amount</p>

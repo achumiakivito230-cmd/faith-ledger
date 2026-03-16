@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { Banknote, TrendingUp, Calendar, FileText, PlusCircle } from 'lucide-react';
+import { AnimatedText } from '@/components/ui/animated-text';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Offering } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
@@ -17,19 +18,19 @@ import { getLocalOfferings, getLocalDenominations } from '@/lib/localStorage';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const PASTEL = {
-  lavender: 'bg-[#E8E0F0]',
-  mint: 'bg-[#D6EDE8]',
-  rose: 'bg-[#F5D5D5]',
-  sky: 'bg-[#D4E8F0]',
+const WARM = {
+  cream: 'bg-[#fef3c7]',
+  blush: 'bg-[#fde8e8]',
+  sand: 'bg-[#fdf2d6]',
+  linen: 'bg-[#f5e8d2]',
 };
 
 // Cycling colors for individual offering rows
 const OFFERING_COLORS = [
-  'bg-[#E8E0F0]', // lavender
-  'bg-[#D4E8F0]', // sky
-  'bg-[#F5D5D5]', // rose
-  'bg-[#D6EDE8]', // mint
+  'bg-[#fef3c7]', // warm yellow
+  'bg-[#fde8e8]', // soft red/blush
+  'bg-[#fdf2d6]', // sand
+  'bg-[#f5e8d2]', // linen
 ];
 
 export default function DashboardPage() {
@@ -115,8 +116,8 @@ export default function DashboardPage() {
         <div className="pt-1">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900">Dashboard</h1>
-              <p className="text-sm text-slate-400 mt-0.5">Monthly offering overview</p>
+              <AnimatedText text="Dashboard" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
+              <p className="text-sm text-muted-foreground mt-2">Monthly offering overview</p>
             </div>
             <div className="flex items-center gap-1.5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
@@ -145,16 +146,16 @@ export default function DashboardPage() {
 
         {/* Pastel Stat Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={Banknote} trend={`${stats.count} services`} bgColor={PASTEL.lavender} />
-          <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} trend="This month" bgColor={PASTEL.mint} />
-          <StatCard title="Average / Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} trend="Per offering" bgColor={PASTEL.sky} />
-          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} trend="Single service" bgColor={PASTEL.rose} />
+          <StatCard title="Total Offerings" value={`₹${stats.total.toLocaleString('en-IN')}`} icon={Banknote} trend={`${stats.count} services`} bgColor={WARM.cream} />
+          <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} trend="This month" bgColor={WARM.sand} />
+          <StatCard title="Average / Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} trend="Per offering" bgColor={WARM.linen} />
+          <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} trend="Single service" bgColor={WARM.blush} />
         </div>
 
         {/* Actions */}
         <div className="flex gap-2">
           <Link to="/new-offering">
-            <Button size="sm" className="rounded-xl bg-slate-900 text-white active:scale-[0.98] transition-transform">
+            <Button size="sm" className="rounded-xl bg-primary text-primary-foreground active:scale-[0.98] transition-transform">
               <PlusCircle className="h-4 w-4 mr-1" />
               New Offering
             </Button>
@@ -168,16 +169,16 @@ export default function DashboardPage() {
         {/* Offerings — individually colored cards */}
         <div>
           <div className="mb-2">
-            <h2 className="text-sm font-bold text-slate-900">
+            <h2 className="text-sm font-bold text-foreground">
               {months[month]} {year} Offerings
             </h2>
-            <p className="text-[10px] text-slate-400 mt-0.5">Recorded services this month</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Recorded services this month</p>
           </div>
 
           {loading ? (
-            <div className="bg-[#F5F0FA] rounded-2xl p-8 text-center text-sm text-slate-400">Loading...</div>
+            <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : offerings.length === 0 ? (
-            <div className="bg-[#F5F0FA] rounded-2xl p-8 text-center text-sm text-slate-400">
+            <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">
               No offerings recorded for {months[month]} {year}.
             </div>
           ) : (
@@ -191,12 +192,12 @@ export default function DashboardPage() {
                   className={`${OFFERING_COLORS[i % OFFERING_COLORS.length]} rounded-2xl p-3.5 flex items-center justify-between`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="text-xs text-slate-500 shrink-0">
+                    <span className="text-xs text-muted-foreground shrink-0">
                       {format(new Date(offering.date), 'MMM d')}
                     </span>
                     <StatusBadge status={offering.status} />
                   </div>
-                  <span className="text-base font-extrabold text-slate-900 shrink-0 ml-2">
+                  <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
                     ₹{Number(offering.total_amount).toLocaleString('en-IN')}
                   </span>
                 </motion.div>

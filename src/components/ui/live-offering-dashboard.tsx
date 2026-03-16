@@ -11,7 +11,7 @@ const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
 // Pastel backgrounds for the metric cards
-const METRIC_COLORS = ['bg-[#D6EDE8]', 'bg-[#E8E0F0]', 'bg-[#D4E8F0]', 'bg-[#F5D5D5]'];
+const METRIC_COLORS = ['bg-[#fef3c7]', 'bg-[#fde8e8]', 'bg-[#fdf2d6]', 'bg-[#f5e8d2]'];
 
 interface OfferingChartProps {
   data: SaleDataPoint[];
@@ -27,8 +27,8 @@ const OfferingChart: FC<OfferingChartProps> = React.memo(({ data, title, lineCol
   return (
     <div className={`${bgColor} rounded-3xl p-4`}>
       <div className="flex items-center gap-1.5 mb-3">
-        <BarChart3 className="h-4 w-4 text-slate-600" />
-        <h4 className="text-sm font-bold text-slate-900">{title}</h4>
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        <h4 className="text-sm font-bold text-foreground">{title}</h4>
       </div>
       <div className="bg-white/50 rounded-2xl p-2" style={{ height: '180px' }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -60,12 +60,12 @@ const DailyBarChart: FC<{ data: SaleDataPoint[] }> = React.memo(({ data }) => {
   const chartData = useMemo(() => data || [], [data]);
 
   return (
-    <div className="bg-[#E0E8F5] rounded-3xl p-4">
+    <div className="bg-[#fdf2d6] rounded-3xl p-4">
       <div className="flex items-center gap-1.5 mb-3">
-        <CalendarDays className="h-4 w-4 text-slate-600" />
-        <h4 className="text-sm font-bold text-slate-900">Daily Collection</h4>
+        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+        <h4 className="text-sm font-bold text-foreground">Daily Collection</h4>
       </div>
-      <p className="text-[10px] text-slate-400 mb-2">Amount collected per day</p>
+      <p className="text-[10px] text-muted-foreground/70 mb-2">Amount collected per day</p>
       <div className="bg-white/50 rounded-2xl p-2" style={{ height: '200px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <ReBarChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
@@ -78,7 +78,7 @@ const DailyBarChart: FC<{ data: SaleDataPoint[] }> = React.memo(({ data }) => {
             />
             <Bar
               dataKey="sales"
-              fill="#5b7cc5"
+              fill="#9b2c2c"
               radius={[6, 6, 0, 0]}
               animationDuration={800}
             />
@@ -114,12 +114,12 @@ export const LiveOfferingDashboard: FC = () => {
         {metrics.map((m, i) => (
           <div key={m.title} className={`${METRIC_COLORS[i]} rounded-2xl p-3.5`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{m.title}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{m.title}</span>
               <div className="bg-white/60 rounded-lg p-1">
-                <m.icon className="h-3.5 w-3.5 text-slate-600" />
+                <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
             </div>
-            <div className="text-lg font-bold text-slate-900 flex items-center gap-1.5">
+            <div className="text-lg font-bold text-foreground flex items-center gap-1.5">
               {m.isLive && (
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
@@ -128,7 +128,7 @@ export const LiveOfferingDashboard: FC = () => {
               )}
               {m.value}
             </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">{m.sub}</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">{m.sub}</p>
           </div>
         ))}
       </div>
@@ -140,41 +140,41 @@ export const LiveOfferingDashboard: FC = () => {
       <OfferingChart
         data={salesChartData}
         title="Offering per Service"
-        lineColor="#7c5bbf"
+        lineColor="#9b2c2c"
         legendName="Amount"
-        bgColor="bg-[#F5F0FA]"
+        bgColor="bg-[#fde8e8]"
       />
       <OfferingChart
         data={cumulativeRevenueData}
         title="Cumulative Total"
-        lineColor="#3b9e8f"
+        lineColor="#b45309"
         legendName="Cumulative"
-        bgColor="bg-[#E8F5F1]"
+        bgColor="bg-[#f5e8d2]"
       />
 
       {/* Recent Offerings */}
-      <div className="bg-[#FDF0F0] rounded-3xl overflow-hidden">
+      <div className="bg-[#fef3c7] rounded-3xl overflow-hidden">
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-1.5">
-            <Banknote className="h-4 w-4 text-slate-600" />
-            <h4 className="text-sm font-bold text-slate-900">Recent Offerings</h4>
+            <Banknote className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-sm font-bold text-foreground">Recent Offerings</h4>
           </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">Latest recorded offerings</p>
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5">Latest recorded offerings</p>
         </div>
         <ScrollArea className="h-[200px]">
           <div className="divide-y divide-white/50 px-4">
             {latestPayments.length === 0 ? (
-              <p className="py-6 text-center text-slate-400 text-sm">No offerings yet...</p>
+              <p className="py-6 text-center text-muted-foreground/70 text-sm">No offerings yet...</p>
             ) : (
               latestPayments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between py-2.5">
                   <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-sm text-slate-900">{formatCurrency(payment.amount)}</span>
-                    <span className="text-[10px] text-slate-500 truncate">
+                    <span className="font-bold text-sm text-foreground">{formatCurrency(payment.amount)}</span>
+                    <span className="text-[10px] text-muted-foreground truncate">
                       {payment.product} — {payment.customer}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2 bg-white/60 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-muted-foreground/70 whitespace-nowrap ml-2 bg-white/60 px-2 py-0.5 rounded-full">
                     {payment.time}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ export const LiveOfferingDashboard: FC = () => {
             )}
           </div>
         </ScrollArea>
-        <div className="px-4 py-2 text-[10px] text-slate-400">
+        <div className="px-4 py-2 text-[10px] text-muted-foreground/70">
           Showing up to 10 recent offerings.
         </div>
       </div>
