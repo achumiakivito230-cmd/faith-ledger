@@ -21,8 +21,17 @@ const WARM = {
 
 export default function AnalyticsPage() {
   const { month, year, day } = useDateFilter();
-  const start = day !== null ? new Date(year, month, day) : startOfMonth(new Date(year, month));
-  const end = day !== null ? new Date(year, month, day, 23, 59, 59) : endOfMonth(new Date(year, month));
+  let start: Date, end: Date;
+  if (month === null) {
+    start = new Date(year, 0, 1);
+    end = new Date(year, 11, 31, 23, 59, 59);
+  } else if (day !== null) {
+    start = new Date(year, month, day);
+    end = new Date(year, month, day, 23, 59, 59);
+  } else {
+    start = startOfMonth(new Date(year, month));
+    end = endOfMonth(new Date(year, month));
+  }
 
   const allOfferings = useMemo(() => {
     return [...mockOfferings, ...getLocalOfferings()].filter((o) => {
@@ -62,7 +71,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="pt-1">
           <AnimatedText text="Analytics" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
-          <p className="text-sm text-muted-foreground mt-2">{day !== null ? `${months[month]} ${day}, ${year}` : `${months[month]} ${year}`} — Offering insights & trends</p>
+          <p className="text-sm text-muted-foreground mt-2">{month === null ? `${year}` : day !== null ? `${months[month]} ${day}, ${year}` : `${months[month]} ${year}`} — Offering insights & trends</p>
         </div>
 
         {/* Pastel Stat Cards */}

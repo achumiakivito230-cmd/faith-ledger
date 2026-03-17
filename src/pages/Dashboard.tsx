@@ -61,8 +61,17 @@ export default function DashboardPage() {
   // Fetch offerings
   useEffect(() => {
     setLoading(true);
-    const start = day !== null ? new Date(year, month, day) : startOfMonth(new Date(year, month));
-    const end = day !== null ? new Date(year, month, day, 23, 59, 59) : endOfMonth(new Date(year, month));
+    let start: Date, end: Date;
+    if (month === null) {
+      start = new Date(year, 0, 1);
+      end = new Date(year, 11, 31, 23, 59, 59);
+    } else if (day !== null) {
+      start = new Date(year, month, day);
+      end = new Date(year, month, day, 23, 59, 59);
+    } else {
+      start = startOfMonth(new Date(year, month));
+      end = endOfMonth(new Date(year, month));
+    }
 
     if (!churchId) {
       const localOfferings = getLocalOfferings();
@@ -130,25 +139,28 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <AnimatedText text="Dashboard" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
-              <p className="text-sm text-muted-foreground mt-2">Monthly offering overview</p>
+              <p className="text-sm text-muted-foreground mt-2">{month === null ? 'Yearly' : 'Monthly'} offering overview</p>
             </div>
             <div className="flex items-center gap-1.5">
-              <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
+              {month !== null && (
+                <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
+                  <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
+                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Select value={month === null ? 'all' : String(month)} onValueChange={(v) => { setMonth(v === 'all' ? null : Number(v)); setDay(null); }}>
                 <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
-                    <SelectItem key={d} value={String(d)}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={String(month)} onValueChange={(v) => { setMonth(Number(v)); setDay(null); }}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
                   {months.map((m, i) => (
                     <SelectItem key={i} value={String(i)}>{m}</SelectItem>
                   ))}
@@ -196,7 +208,7 @@ export default function DashboardPage() {
         <div>
           <div className="mb-2">
             <h2 className="text-sm font-bold text-foreground">
-              {months[month]} {year} Offerings
+              {month === null ? year : `${months[month]} ${year}`} Offerings
             </h2>
             <p className="text-[10px] text-muted-foreground mt-0.5">Recorded services this month</p>
           </div>
@@ -205,7 +217,7 @@ export default function DashboardPage() {
             <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : offerings.length === 0 ? (
             <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">
-              No offerings recorded for {months[month]} {year}.
+              No offerings recorded for {month === null ? year : `${months[month]} ${year}`}.
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -236,14 +248,14 @@ export default function DashboardPage() {
         <div>
           <div className="mb-2">
             <h2 className="text-sm font-bold text-foreground">
-              {months[month]} {year} Expenses
+              {month === null ? year : `${months[month]} ${year}`} Expenses
             </h2>
             <p className="text-[10px] text-muted-foreground mt-0.5">Recorded expenses this month</p>
           </div>
 
           {expenses.length === 0 ? (
             <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">
-              No expenses recorded for {months[month]} {year}.
+              No expenses recorded for {month === null ? year : `${months[month]} ${year}`}.
             </div>
           ) : (
             <div className="space-y-2.5">
