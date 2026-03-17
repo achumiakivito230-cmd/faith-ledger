@@ -105,32 +105,6 @@ export default function NewExpensePage() {
 
   const formSections = [
     {
-      bg: 'bg-[#fef3c7]',
-      content: (
-        <div className="space-y-2">
-          <Label className="text-sm font-bold text-foreground">Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'PPP') : 'Pick a date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && setDate(d)}
-                disabled={(d) => d > new Date()}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      ),
-    },
-    {
       bg: 'bg-[#fde8e8]',
       content: (
         <div className="space-y-2">
