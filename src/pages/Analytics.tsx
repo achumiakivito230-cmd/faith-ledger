@@ -7,7 +7,6 @@ import { mockOfferings, mockExpenses } from '@/lib/mockData';
 import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
-import DatabaseWithRestApi from '@/components/ui/database-with-rest-api';
 
 const WARM = {
   cream: 'bg-[#fef3c7]',
@@ -100,17 +99,6 @@ export default function AnalyticsPage() {
 
         {/* Offering Report Bar Chart */}
         <BarChartMedium chartData={chartData} />
-
-        {/* Data Flow Visualization */}
-        <div className="rounded-2xl bg-[#0a0a0b] p-4 overflow-hidden">
-          <DatabaseWithRestApi
-            badgeTexts={{ first: 'Income', second: 'Expense', third: 'Verify', fourth: 'Reports' }}
-            title="Church Treasury Data Flow"
-            circleText="SBC"
-            buttonTexts={{ first: 'SBC Darogajan', second: 'DoWM 2025' }}
-            lightColor="#9b2c2c"
-          />
-        </div>
 
         {/* Live Offering Dashboard */}
         <LiveOfferingDashboard />
