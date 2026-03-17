@@ -232,13 +232,13 @@ export default function DashboardPage() {
                 >
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <div className="flex items-center gap-2.5">
-                      <span className="text-xs text-muted-foreground shrink-0">
+                      <span className="text-xs font-semibold text-foreground/70 shrink-0">
                         {format(new Date(offering.date), 'MMM d')}
                       </span>
                       <StatusBadge status={offering.status} />
                     </div>
                     {offering.notes && (
-                      <span className="text-xs text-muted-foreground truncate">{offering.notes}</span>
+                      <span className="text-sm font-bold text-foreground truncate">{offering.notes}</span>
                     )}
                   </div>
                   <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
