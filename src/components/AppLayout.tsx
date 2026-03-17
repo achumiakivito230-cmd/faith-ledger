@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 bg-card shadow-card">
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
+            <LayoutDashboard className="h-5 w-5 text-primary" />
             <span className="font-semibold text-card-foreground text-sm">Church Treasury</span>
           </Link>
 
