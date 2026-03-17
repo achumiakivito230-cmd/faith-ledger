@@ -1,14 +1,13 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, PlusCircle, Clock, ShieldCheck, LogOut, BarChart3, Wallet } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Clock, LogOut, BarChart3, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/new-offering', icon: PlusCircle, label: 'Offering', roles: ['treasurer', 'counter'] },
   { to: '/history', icon: Clock, label: 'History', roles: ['treasurer', 'counter', 'pastor'] },
-  { to: '/verify', icon: ShieldCheck, label: 'Verify', roles: ['treasurer', 'counter'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/new-expense', icon: Wallet, label: 'Expenses', roles: ['treasurer', 'counter', 'pastor'] },
 ];
