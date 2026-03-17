@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { motion } from 'framer-motion';
-import { CalendarIcon, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarIcon, Send, Delete } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,8 @@ import { mockChurch } from '@/lib/mockData';
 import { saveLocalExpense } from '@/lib/localStorage';
 
 const generateId = () => `expense-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'backspace'] as const;
 
 export default function NewExpensePage() {
   const { user, churchId } = useAuth();
@@ -33,8 +35,23 @@ export default function NewExpensePage() {
   const [paymentMethod, setPaymentMethod] = useState<string>('Cash');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showNumpad, setShowNumpad] = useState(false);
 
   const parsedAmount = parseFloat(amount) || 0;
+
+  const handleNumpadPress = (key: string) => {
+    if (key === 'backspace') {
+      setAmount((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (key === '.' && amount.includes('.')) return;
+    // Limit to 2 decimal places
+    const parts = amount.split('.');
+    if (parts[1] && parts[1].length >= 2 && key !== 'backspace') return;
+    // Limit total length
+    if (amount.length >= 10) return;
+    setAmount((prev) => prev + key);
+  };
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -146,15 +163,16 @@ export default function NewExpensePage() {
       content: (
         <div className="space-y-2">
           <Label className="text-sm font-bold text-foreground">Amount (₹)</Label>
-          <Input
-            type="number"
-            placeholder="0"
-            min="0"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="font-tabular text-lg"
-          />
+          {/* Tappable amount display that opens numpad */}
+          <button
+            type="button"
+            onClick={() => setShowNumpad(true)}
+            className="flex h-11 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-left font-tabular text-lg ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className={amount ? 'text-foreground' : 'text-muted-foreground'}>
+              {amount ? `₹${parseFloat(amount).toLocaleString('en-IN')}` : 'Tap to enter amount'}
+            </span>
+          </button>
         </div>
       ),
     },
@@ -238,6 +256,74 @@ export default function NewExpensePage() {
           </Button>
         </div>
       </div>
+
+      {/* Numpad overlay */}
+      <AnimatePresence>
+        {showNumpad && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowNumpad(false)}
+            />
+
+            {/* Numpad panel */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-border/40 shadow-elevated"
+            >
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1 w-10 rounded-full bg-border" />
+              </div>
+
+              {/* Amount display */}
+              <div className="px-6 pb-4 text-center">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Enter Amount</p>
+                <p className="text-4xl font-bold font-tabular text-foreground">
+                  ₹{amount || '0'}
+                </p>
+              </div>
+
+              {/* Numpad grid */}
+              <div className="grid grid-cols-3 gap-2 px-4 pb-3">
+                {NUMPAD_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleNumpadPress(key)}
+                    className={cn(
+                      'flex h-14 items-center justify-center rounded-xl text-xl font-semibold transition-colors active:scale-95',
+                      key === 'backspace'
+                        ? 'bg-[#fde8e8] text-red-700 active:bg-red-200'
+                        : 'bg-[#f5e8d2] text-foreground active:bg-[#e8d5b8]'
+                    )}
+                  >
+                    {key === 'backspace' ? <Delete className="h-6 w-6" /> : key}
+                  </button>
+                ))}
+              </div>
+
+              {/* Done button */}
+              <div className="px-4 pb-6">
+                <Button
+                  className="w-full h-12 text-base font-semibold active:scale-[0.98] transition-transform"
+                  onClick={() => setShowNumpad(false)}
+                >
+                  Done
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </AppLayout>
   );
 }
