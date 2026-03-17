@@ -7,8 +7,9 @@ import { mockOfferings, mockExpenses } from '@/lib/mockData';
 import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDateFilter } from '@/hooks/useDateFilter';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -20,7 +21,7 @@ const WARM = {
 };
 
 export default function AnalyticsPage() {
-  const { month, year, day } = useDateFilter();
+  const { month, year, day, setMonth, setYear, setDay } = useDateFilter();
   let start: Date, end: Date;
   if (month === null) {
     start = new Date(year, 0, 1);
@@ -70,8 +71,48 @@ export default function AnalyticsPage() {
       <div className="space-y-5 pb-16">
         {/* Header */}
         <div className="pt-1">
-          <AnimatedText text="Analytics" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
-          <p className="text-sm text-muted-foreground mt-2">{month === null ? `${year}` : day !== null ? `${months[month]} ${day}, ${year}` : `${months[month]} ${year}`} — Offering insights & trends</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <AnimatedText text="Analytics" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
+              <p className="text-sm text-muted-foreground mt-2">Offering insights & trends</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {month !== null && (
+                <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
+                  <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
+                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Select value={month === null ? 'all' : String(month)} onValueChange={(v) => { setMonth(v === 'all' ? null : Number(v)); setDay(null); }}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {months.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setDay(null); }}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map((y) => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Pastel Stat Cards */}
