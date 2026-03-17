@@ -10,6 +10,7 @@ import NewOfferingPage from "./pages/NewOffering";
 import HistoryPage from "./pages/History";
 import VerifyPage from "./pages/Verify";
 import AnalyticsPage from "./pages/Analytics";
+import NewExpensePage from "./pages/NewExpense";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path="/verify" element={<ProtectedRoute><VerifyPage /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+        <Route path="/new-expense" element={<ProtectedRoute><NewExpensePage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );

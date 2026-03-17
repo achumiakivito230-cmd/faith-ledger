@@ -3,9 +3,9 @@ import AppLayout from '@/components/AppLayout';
 import StatCard from '@/components/StatCard';
 import BarChartMedium from '@/components/ui/bar-chart-medium';
 import { LiveOfferingDashboard } from '@/components/ui/live-offering-dashboard';
-import { mockOfferings } from '@/lib/mockData';
-import { getLocalOfferings } from '@/lib/localStorage';
-import { Banknote, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { mockOfferings, mockExpenses } from '@/lib/mockData';
+import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
+import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
 
 const WARM = {
@@ -20,12 +20,18 @@ export default function AnalyticsPage() {
     return [...mockOfferings, ...getLocalOfferings()];
   }, []);
 
+  const allExpenses = useMemo(() => {
+    return [...mockExpenses, ...getLocalExpenses()];
+  }, []);
+
   const stats = useMemo(() => {
     const total = allOfferings.reduce((s, o) => s + o.total_amount, 0);
     const verified = allOfferings.filter((o) => o.status === 'verified').reduce((s, o) => s + o.total_amount, 0);
     const pending = allOfferings.filter((o) => o.status === 'pending').length;
-    return { total, verified, pending, count: allOfferings.length };
-  }, [allOfferings]);
+    const totalExpenses = allExpenses.reduce((s, e) => s + e.amount, 0);
+    const netBalance = total - totalExpenses;
+    return { total, verified, pending, count: allOfferings.length, totalExpenses, expenseCount: allExpenses.length, netBalance };
+  }, [allOfferings, allExpenses]);
 
   const chartData = useMemo(() => {
     return allOfferings.map((o) => {
@@ -74,6 +80,20 @@ export default function AnalyticsPage() {
             icon={TrendingUp}
             trend="Per offering"
             bgColor={WARM.linen}
+          />
+          <StatCard
+            title="Total Expenses"
+            value={`₹${stats.totalExpenses.toLocaleString('en-IN')}`}
+            icon={MinusCircle}
+            trend={`${stats.expenseCount} expenses`}
+            bgColor={WARM.blush}
+          />
+          <StatCard
+            title="Net Balance"
+            value={`₹${stats.netBalance.toLocaleString('en-IN')}`}
+            icon={Wallet}
+            trend="Offerings − Expenses"
+            bgColor={WARM.cream}
           />
         </div>
 

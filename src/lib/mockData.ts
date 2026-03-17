@@ -1,4 +1,4 @@
-import type { Offering, Denomination } from '@/types';
+import type { Offering, Denomination, Expense } from '@/types';
 
 export const mockChurch = {
   id: 'mock-church-1',
@@ -133,5 +133,47 @@ export const mockOfferings: (Offering & { denominations?: Denomination })[] = [
       note_10: 7,
       total_notes: 72,
     },
+  },
+];
+
+export const mockExpenses: Expense[] = [
+  {
+    id: 'expense-1',
+    church_id: 'mock-church-1',
+    date: '2026-03-12',
+    category: 'Utilities',
+    description: 'Electricity bill - March',
+    amount: 3500,
+    payment_method: 'Bank Transfer',
+    notes: 'Monthly electricity payment',
+    created_by_user_id: 'user-2',
+    created_at: '2026-03-12T09:00:00Z',
+    updated_at: '2026-03-12T09:00:00Z',
+  },
+  {
+    id: 'expense-2',
+    church_id: 'mock-church-1',
+    date: '2026-03-10',
+    category: 'Supplies',
+    description: 'Communion supplies and candles',
+    amount: 1200,
+    payment_method: 'Cash',
+    notes: null,
+    created_by_user_id: 'user-2',
+    created_at: '2026-03-10T11:00:00Z',
+    updated_at: '2026-03-10T11:00:00Z',
+  },
+  {
+    id: 'expense-3',
+    church_id: 'mock-church-1',
+    date: '2026-03-05',
+    category: 'Maintenance',
+    description: 'Roof repair - minor leak',
+    amount: 8000,
+    payment_method: 'UPI',
+    notes: 'Paid to local contractor',
+    created_by_user_id: 'user-2',
+    created_at: '2026-03-05T14:00:00Z',
+    updated_at: '2026-03-05T14:00:00Z',
   },
 ];

@@ -67,3 +67,47 @@ export const DENOMINATIONS: Omit<DenominationInput, 'count'>[] = [
   { value: 20, label: '₹20', field: 'note_20' },
   { value: 10, label: '₹10', field: 'note_10' },
 ];
+
+export type ExpenseCategory =
+  | 'Utilities'
+  | 'Staff & Salaries'
+  | 'Maintenance'
+  | 'Ministry'
+  | 'Charity / Outreach'
+  | 'Supplies'
+  | 'Events'
+  | 'Miscellaneous';
+
+export type PaymentMethod = 'Cash' | 'Bank Transfer' | 'UPI' | 'Cheque';
+
+export interface Expense {
+  id: string;
+  church_id: string;
+  date: string;
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  payment_method: PaymentMethod;
+  notes: string | null;
+  created_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  'Utilities',
+  'Staff & Salaries',
+  'Maintenance',
+  'Ministry',
+  'Charity / Outreach',
+  'Supplies',
+  'Events',
+  'Miscellaneous',
+];
+
+export const PAYMENT_METHODS: PaymentMethod[] = [
+  'Cash',
+  'Bank Transfer',
+  'UPI',
+  'Cheque',
+];

@@ -8,13 +8,13 @@ import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
-import { Banknote, TrendingUp, Calendar, FileText, PlusCircle } from 'lucide-react';
+import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, Wallet, MinusCircle } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import type { Offering } from '@/types';
+import type { Offering, Expense } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
-import { mockChurch, mockOfferings } from '@/lib/mockData';
-import { getLocalOfferings, getLocalDenominations } from '@/lib/localStorage';
+import { mockChurch, mockOfferings, mockExpenses } from '@/lib/mockData';
+import { getLocalOfferings, getLocalDenominations, getLocalExpenses } from '@/lib/localStorage';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
   const [offerings, setOfferings] = useState<Offering[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [churchName, setChurchName] = useState('Church');
 
@@ -79,6 +80,15 @@ export default function DashboardPage() {
       }));
 
       setOfferings(withDenoms.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
+      // Fetch expenses for the same month
+      const allExpenses = [...mockExpenses, ...getLocalExpenses()];
+      const filteredExpenses = allExpenses.filter((e) => {
+        const expDate = new Date(e.date);
+        return expDate >= start && expDate <= end;
+      });
+      setExpenses(filteredExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
       setLoading(false);
       return;
     }
@@ -102,8 +112,10 @@ export default function DashboardPage() {
     const count = verified.length;
     const avg = count > 0 ? total / count : 0;
     const highest = verified.length > 0 ? Math.max(...verified.map((o) => Number(o.total_amount))) : 0;
-    return { total, count, avg, highest };
-  }, [offerings]);
+    const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
+    const netBalance = total - expenseTotal;
+    return { total, count, avg, highest, expenseTotal, netBalance };
+  }, [offerings, expenses]);
 
   const handleExportPDF = () => {
     generateMonthlyPDF(offerings, months[month], year, profile?.name ?? 'Treasurer', churchName);
@@ -150,6 +162,8 @@ export default function DashboardPage() {
           <StatCard title="Services Recorded" value={String(stats.count)} icon={Calendar} trend="This month" bgColor={WARM.sand} />
           <StatCard title="Average / Service" value={`₹${Math.round(stats.avg).toLocaleString('en-IN')}`} icon={TrendingUp} trend="Per offering" bgColor={WARM.linen} />
           <StatCard title="Highest" value={`₹${stats.highest.toLocaleString('en-IN')}`} icon={TrendingUp} trend="Single service" bgColor={WARM.blush} />
+          <StatCard title="Total Expenses" value={`₹${stats.expenseTotal.toLocaleString('en-IN')}`} icon={MinusCircle} trend={`${expenses.length} this month`} bgColor={WARM.blush} />
+          <StatCard title="Net Balance" value={`₹${stats.netBalance.toLocaleString('en-IN')}`} icon={Wallet} trend="Offerings − Expenses" bgColor={WARM.cream} />
         </div>
 
         {/* Actions */}
@@ -199,6 +213,45 @@ export default function DashboardPage() {
                   </div>
                   <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
                     ₹{Number(offering.total_amount).toLocaleString('en-IN')}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Expenses */}
+        <div>
+          <div className="mb-2">
+            <h2 className="text-sm font-bold text-foreground">
+              {months[month]} {year} Expenses
+            </h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Recorded expenses this month</p>
+          </div>
+
+          {expenses.length === 0 ? (
+            <div className="bg-[#fdf2d6] rounded-2xl p-8 text-center text-sm text-muted-foreground">
+              No expenses recorded for {months[month]} {year}.
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {expenses.map((expense, i) => (
+                <motion.div
+                  key={expense.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className={`${OFFERING_COLORS[i % OFFERING_COLORS.length]} rounded-2xl p-3.5 flex items-center justify-between`}
+                >
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-sm font-semibold text-foreground truncate">{expense.description}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{format(new Date(expense.date), 'MMM d')}</span>
+                      <span className="text-[10px] bg-white/60 px-1.5 py-0.5 rounded-sm text-muted-foreground">{expense.category}</span>
+                    </div>
+                  </div>
+                  <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
+                    −₹{expense.amount.toLocaleString('en-IN')}
                   </span>
                 </motion.div>
               ))}

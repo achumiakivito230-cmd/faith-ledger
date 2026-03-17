@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, PlusCircle, Clock, ShieldCheck, LogOut, Menu, X, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Clock, ShieldCheck, LogOut, Menu, X, BarChart3, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/history', icon: Clock, label: 'History', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/verify', icon: ShieldCheck, label: 'Verify', roles: ['treasurer', 'counter'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['treasurer', 'counter', 'pastor'] },
+  { to: '/new-expense', icon: Wallet, label: 'Expenses', roles: ['treasurer'] },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {

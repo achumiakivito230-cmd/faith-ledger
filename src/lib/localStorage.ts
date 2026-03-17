@@ -1,7 +1,8 @@
-import type { Offering, Denomination } from '@/types';
+import type { Offering, Denomination, Expense } from '@/types';
 
 const OFFERINGS_KEY = 'mock_offerings';
 const DENOMINATIONS_KEY = 'mock_denominations';
+const EXPENSES_KEY = 'mock_expenses';
 
 export function getLocalOfferings(): Offering[] {
   try {
@@ -40,7 +41,27 @@ export function saveLocalOffering(offering: Offering, denom: Denomination): void
   }
 }
 
+export function getLocalExpenses(): Expense[] {
+  try {
+    const data = localStorage.getItem(EXPENSES_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalExpense(expense: Expense): void {
+  try {
+    const expenses = getLocalExpenses();
+    expenses.push(expense);
+    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
+  } catch (err) {
+    console.error('Failed to save expense to localStorage:', err);
+  }
+}
+
 export function clearLocalData(): void {
   localStorage.removeItem(OFFERINGS_KEY);
   localStorage.removeItem(DENOMINATIONS_KEY);
+  localStorage.removeItem(EXPENSES_KEY);
 }
