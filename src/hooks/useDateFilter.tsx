@@ -3,8 +3,10 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 interface DateFilterContextType {
   month: number;
   year: number;
+  day: number | null; // null = all days
   setMonth: (m: number) => void;
   setYear: (y: number) => void;
+  setDay: (d: number | null) => void;
 }
 
 const DateFilterContext = createContext<DateFilterContextType | undefined>(undefined);
@@ -13,9 +15,10 @@ export function DateFilterProvider({ children }: { children: ReactNode }) {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [day, setDay] = useState<number | null>(null);
 
   return (
-    <DateFilterContext.Provider value={{ month, year, setMonth, setYear }}>
+    <DateFilterContext.Provider value={{ month, year, day, setMonth, setYear, setDay }}>
       {children}
     </DateFilterContext.Provider>
   );

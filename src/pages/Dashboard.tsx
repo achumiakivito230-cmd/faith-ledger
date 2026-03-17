@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, Wallet, MinusCircle } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { useDateFilter } from '@/hooks/useDateFilter';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
 import type { Offering, Expense } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
 import { mockChurch, mockOfferings, mockExpenses } from '@/lib/mockData';
@@ -36,7 +36,7 @@ const OFFERING_COLORS = [
 
 export default function DashboardPage() {
   const { churchId, profile } = useAuth();
-  const { month, year, setMonth, setYear } = useDateFilter();
+  const { month, year, day, setMonth, setYear, setDay } = useDateFilter();
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,8 +61,8 @@ export default function DashboardPage() {
   // Fetch offerings
   useEffect(() => {
     setLoading(true);
-    const start = startOfMonth(new Date(year, month));
-    const end = endOfMonth(new Date(year, month));
+    const start = day !== null ? new Date(year, month, day) : startOfMonth(new Date(year, month));
+    const end = day !== null ? new Date(year, month, day, 23, 59, 59) : endOfMonth(new Date(year, month));
 
     if (!churchId) {
       const localOfferings = getLocalOfferings();
@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
       setOfferings(withDenoms.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
-      // Fetch expenses for the same month
+      // Fetch expenses for the same period
       const allExpenses = [...mockExpenses, ...getLocalExpenses()];
       const filteredExpenses = allExpenses.filter((e) => {
         const expDate = new Date(e.date);
@@ -92,18 +92,20 @@ export default function DashboardPage() {
       return;
     }
 
+    const startStr = format(start, 'yyyy-MM-dd');
+    const endStr = format(end, 'yyyy-MM-dd');
     supabase
       .from('offerings')
       .select('*')
       .eq('church_id', churchId)
-      .gte('date', format(start, 'yyyy-MM-dd'))
-      .lte('date', format(end, 'yyyy-MM-dd'))
+      .gte('date', startStr)
+      .lte('date', endStr)
       .order('date', { ascending: false })
       .then(({ data }) => {
         setOfferings((data ?? []) as Offering[]);
         setLoading(false);
       });
-  }, [churchId, month, year]);
+  }, [churchId, month, year, day]);
 
   const stats = useMemo(() => {
     const verified = offerings.filter((o) => o.status === 'verified');
@@ -131,7 +133,18 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground mt-2">Monthly offering overview</p>
             </div>
             <div className="flex items-center gap-1.5">
-              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+              <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
+                    <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(month)} onValueChange={(v) => { setMonth(Number(v)); setDay(null); }}>
                 <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
                   <SelectValue />
                 </SelectTrigger>
@@ -141,7 +154,7 @@ export default function DashboardPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+              <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setDay(null); }}>
                 <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
                   <SelectValue />
                 </SelectTrigger>
