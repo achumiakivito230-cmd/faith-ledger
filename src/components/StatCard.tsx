@@ -1,5 +1,5 @@
 import { type ElementType } from 'react';
-import NumberFlow from '@number-flow/react';
+import AnimatedNumber from '@/components/AnimatedNumber';
 
 interface StatCardProps {
   title: string;
@@ -27,7 +27,7 @@ export default function StatCard({ title, value, icon: Icon, trend, subtitle, bg
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
           <div className="mt-1.5 text-xl font-bold text-foreground">
             {useNumberFlow ? (
-              <NumberFlow
+              <AnimatedNumber
                 value={numericValue}
                 format={isINR ? {
                   style: 'currency',
