@@ -9,6 +9,7 @@ import type { Offering, Denomination } from '@/types';
 import { DENOMINATIONS } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import NumberFlow from '@number-flow/react';
 
 export default function HistoryPage() {
   const { churchId, role } = useAuth();
@@ -145,7 +146,7 @@ export default function HistoryPage() {
                     <StatusBadge status={offering.status} />
                   </div>
                   <span className="text-sm font-semibold font-tabular text-card-foreground">
-                    ₹{Number(offering.total_amount).toLocaleString('en-IN')}
+                    <NumberFlow value={Number(offering.total_amount)} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} />
                   </span>
                 </motion.button>
               ))}
@@ -198,7 +199,7 @@ export default function HistoryPage() {
                       <div key={d.field} className="flex justify-between text-sm">
                         <span className="text-muted-foreground">{d.label} × {count}</span>
                         <span className="font-tabular font-medium text-card-foreground">
-                          ₹{(d.value * count).toLocaleString('en-IN')}
+                          <NumberFlow value={d.value * count} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} />
                         </span>
                       </div>
                     );
@@ -209,7 +210,7 @@ export default function HistoryPage() {
               <div className="border-t border-border pt-3 flex justify-between">
                 <span className="text-sm font-medium text-card-foreground">Total</span>
                 <span className="text-lg font-semibold font-tabular text-card-foreground">
-                  ₹{Number(selected.total_amount).toLocaleString('en-IN')}
+                  <NumberFlow value={Number(selected.total_amount)} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} />
                 </span>
               </div>
             </div>

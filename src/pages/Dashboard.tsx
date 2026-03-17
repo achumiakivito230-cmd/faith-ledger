@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
+import NumberFlow from '@number-flow/react';
 import StatCard from '@/components/StatCard';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -236,7 +237,7 @@ export default function DashboardPage() {
                     <StatusBadge status={offering.status} />
                   </div>
                   <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
-                    ₹{Number(offering.total_amount).toLocaleString('en-IN')}
+                    <NumberFlow value={Number(offering.total_amount)} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} />
                   </span>
                 </motion.div>
               ))}
@@ -275,7 +276,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <span className="text-base font-extrabold text-foreground shrink-0 ml-2">
-                    −₹{expense.amount.toLocaleString('en-IN')}
+                    −<NumberFlow value={expense.amount} format={{ style: 'currency', currency: 'INR', maximumFractionDigits: 0 }} />
                   </span>
                 </motion.div>
               ))}
