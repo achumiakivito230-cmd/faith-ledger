@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DENOMINATIONS } from '@/types';
 import { mockChurch } from '@/lib/mockData';
 import { saveLocalOffering } from '@/lib/localStorage';
+import { useDateFilter } from '@/hooks/useDateFilter';
 
 // Simple ID generator
 const generateId = () => `offering-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -34,7 +35,8 @@ export default function NewOfferingPage() {
   const { user, churchId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [date, setDate] = useState<Date>(new Date());
+  const { month, year } = useDateFilter();
+  const [date, setDate] = useState<Date>(new Date(year, month, new Date().getDate()));
   const [counts, setCounts] = useState<Record<string, number>>({
     note_500: 0, note_200: 0, note_100: 0, note_50: 0, note_20: 0, note_10: 0,
   });

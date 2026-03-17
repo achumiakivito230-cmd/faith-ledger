@@ -19,6 +19,7 @@ import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
 import type { ExpenseCategory, PaymentMethod } from '@/types';
 import { mockChurch } from '@/lib/mockData';
 import { saveLocalExpense } from '@/lib/localStorage';
+import { useDateFilter } from '@/hooks/useDateFilter';
 
 const generateId = () => `expense-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
@@ -28,7 +29,8 @@ export default function NewExpensePage() {
   const { user, churchId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [date, setDate] = useState<Date>(new Date());
+  const { month, year } = useDateFilter();
+  const [date, setDate] = useState<Date>(new Date(year, month, new Date().getDate()));
   const [category, setCategory] = useState<string>('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');

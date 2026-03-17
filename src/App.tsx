@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { DateFilterProvider } from "@/hooks/useDateFilter";
 import ChurchSetupPage from "./pages/ChurchSetup";
 import DashboardPage from "./pages/Dashboard";
 import NewOfferingPage from "./pages/NewOffering";
@@ -74,7 +75,9 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AppRoutes />
+            <DateFilterProvider>
+              <AppRoutes />
+            </DateFilterProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

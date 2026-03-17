@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion';
 import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, Wallet, MinusCircle } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
+import { useDateFilter } from '@/hooks/useDateFilter';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Offering, Expense } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
@@ -35,9 +36,7 @@ const OFFERING_COLORS = [
 
 export default function DashboardPage() {
   const { churchId, profile } = useAuth();
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth());
-  const [year, setYear] = useState(now.getFullYear());
+  const { month, year, setMonth, setYear } = useDateFilter();
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);

@@ -7,6 +7,10 @@ import { mockOfferings, mockExpenses } from '@/lib/mockData';
 import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
+import { useDateFilter } from '@/hooks/useDateFilter';
+import { startOfMonth, endOfMonth } from 'date-fns';
+
+const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const WARM = {
   cream: 'bg-[#fef3c7]',
@@ -16,13 +20,23 @@ const WARM = {
 };
 
 export default function AnalyticsPage() {
+  const { month, year } = useDateFilter();
+  const start = startOfMonth(new Date(year, month));
+  const end = endOfMonth(new Date(year, month));
+
   const allOfferings = useMemo(() => {
-    return [...mockOfferings, ...getLocalOfferings()];
-  }, []);
+    return [...mockOfferings, ...getLocalOfferings()].filter((o) => {
+      const d = new Date(o.date);
+      return d >= start && d <= end;
+    });
+  }, [start, end]);
 
   const allExpenses = useMemo(() => {
-    return [...mockExpenses, ...getLocalExpenses()];
-  }, []);
+    return [...mockExpenses, ...getLocalExpenses()].filter((e) => {
+      const d = new Date(e.date);
+      return d >= start && d <= end;
+    });
+  }, [start, end]);
 
   const stats = useMemo(() => {
     const total = allOfferings.reduce((s, o) => s + o.total_amount, 0);
@@ -48,7 +62,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="pt-1">
           <AnimatedText text="Analytics" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
-          <p className="text-sm text-muted-foreground mt-2">Offering insights & trends</p>
+          <p className="text-sm text-muted-foreground mt-2">{months[month]} {year} — Offering insights & trends</p>
         </div>
 
         {/* Pastel Stat Cards */}
