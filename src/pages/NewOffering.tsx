@@ -11,13 +11,16 @@ import { Calendar } from '@/components/ui/calendar';
 import { motion } from 'framer-motion';
 import { CalendarIcon, Send } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
-import { format } from 'date-fns';
+import { format, getDaysInMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DENOMINATIONS } from '@/types';
 import { mockChurch } from '@/lib/mockData';
 import { saveLocalOffering } from '@/lib/localStorage';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDateFilter } from '@/hooks/useDateFilter';
+
+const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // Simple ID generator
 const generateId = () => `offering-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -35,8 +38,8 @@ export default function NewOfferingPage() {
   const { user, churchId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { month, year } = useDateFilter();
-  const [date, setDate] = useState<Date>(new Date(year, month, new Date().getDate()));
+  const { month, year, day, setMonth, setYear, setDay } = useDateFilter();
+  const [date, setDate] = useState<Date>(new Date(year, month ?? new Date().getMonth(), new Date().getDate()));
   const [counts, setCounts] = useState<Record<string, number>>({
     note_500: 0, note_200: 0, note_100: 0, note_50: 0, note_20: 0, note_10: 0,
   });
@@ -117,8 +120,48 @@ export default function NewOfferingPage() {
     <AppLayout>
       <div className="mx-auto max-w-lg space-y-4 pb-16">
         <div className="pt-1">
-          <AnimatedText text="New Offering" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
-          <p className="text-sm text-muted-foreground mt-2">Enter denomination counts from the service</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <AnimatedText text="New Offering" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
+              <p className="text-sm text-muted-foreground mt-2">Enter denomination counts from the service</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {month !== null && (
+                <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
+                  <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
+                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Select value={month === null ? 'all' : String(month)} onValueChange={(v) => { setMonth(v === 'all' ? null : Number(v)); setDay(null); }}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {monthNames.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setDay(null); }}>
+                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map((y) => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Date picker */}
