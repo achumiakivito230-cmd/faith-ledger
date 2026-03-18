@@ -60,6 +60,15 @@ export function saveLocalExpense(expense: Expense): void {
   }
 }
 
+export function deleteLocalExpense(expenseId: string): void {
+  try {
+    const expenses = getLocalExpenses().filter(e => e.id !== expenseId);
+    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
+  } catch (err) {
+    console.error('Failed to delete expense:', err);
+  }
+}
+
 // Loan storage
 const LOANS_KEY = 'mock_loans';
 const LOAN_PAYMENTS_KEY = 'mock_loan_payments';

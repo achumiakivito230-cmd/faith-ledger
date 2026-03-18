@@ -62,6 +62,71 @@ export function getAmortizationSchedule(loan: Loan): Array<{
   return schedule;
 }
 
+/** Apply a manual / lump-sum payment to a loan. Reduces tenure (same EMI, fewer months). */
+export function applyManualLoanPayment(
+  loanId: string,
+  amount: number,
+  expenseId: string,
+): void {
+  const loans = getLocalLoans();
+  const loan = loans.find(l => l.id === loanId);
+  if (!loan || loan.status !== 'active') return;
+
+  const existingPayments = getLocalLoanPayments(loanId);
+  const paidCount = existingPayments.length;
+
+  // Current outstanding balance
+  const outstanding = calculateRemainingBalance(
+    loan.principal_amount,
+    loan.interest_rate,
+    loan.monthly_emi,
+    paidCount,
+  );
+
+  if (outstanding <= 0) return;
+
+  const effectiveAmount = Math.min(amount, outstanding);
+  const newBalance = Math.max(0, outstanding - effectiveAmount);
+
+  // Create a LoanPayment record for this manual payment
+  const payment: LoanPayment = {
+    id: `payment-manual-${expenseId}`,
+    loan_id: loanId,
+    expense_id: expenseId,
+    payment_date: format(new Date(), 'yyyy-MM-dd'),
+    emi_amount: effectiveAmount,
+    principal_component: effectiveAmount, // lump sum goes entirely to principal
+    interest_component: 0,
+    outstanding_balance: newBalance,
+    payment_number: paidCount + 1,
+    created_at: new Date().toISOString(),
+  };
+
+  saveLocalLoanPayment(payment);
+
+  if (newBalance <= 0) {
+    // Fully paid off
+    updateLocalLoan(loanId, { status: 'completed' });
+  } else {
+    // Reduce tenure: how many months at current EMI to pay off newBalance
+    const r = loan.interest_rate / 12 / 100;
+    let newTenure: number;
+    if (r === 0) {
+      newTenure = Math.ceil(newBalance / loan.monthly_emi);
+    } else {
+      // n = log(EMI / (EMI - B*r)) / log(1+r)
+      const ratio = loan.monthly_emi / (loan.monthly_emi - newBalance * r);
+      if (ratio <= 0) {
+        newTenure = 1; // fallback
+      } else {
+        newTenure = Math.ceil(Math.log(ratio) / Math.log(1 + r));
+      }
+    }
+    // Total tenure = payments already made + 1 (this payment) + remaining months
+    updateLocalLoan(loanId, { tenure_months: paidCount + 1 + newTenure });
+  }
+}
+
 /** Check all active loans and generate any due EMI expenses + payments */
 export function generateDueEMIs(churchId: string, userId: string): void {
   const loans = getLocalLoans().filter(l => l.status === 'active' && l.church_id === churchId);

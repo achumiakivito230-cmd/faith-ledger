@@ -18,7 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
 import type { ExpenseCategory, PaymentMethod } from '@/types';
 import { mockChurch } from '@/lib/mockData';
-import { saveLocalExpense } from '@/lib/localStorage';
+import { saveLocalExpense, getLocalLoans } from '@/lib/localStorage';
+import { applyManualLoanPayment } from '@/lib/loanUtils';
 import { useDateFilter } from '@/hooks/useDateFilter';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -37,8 +38,11 @@ export default function NewExpensePage() {
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('Cash');
   const [notes, setNotes] = useState('');
+  const [loanId, setLoanId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [showNumpad, setShowNumpad] = useState(false);
+
+  const activeLoans = getLocalLoans().filter(l => l.status === 'active');
 
   const parsedAmount = parseFloat(amount) || 0;
 
@@ -86,13 +90,20 @@ export default function NewExpensePage() {
         amount: parsedAmount,
         payment_method: paymentMethod as PaymentMethod,
         notes: notes.trim() || null,
+        ...(loanId && loanId !== 'none' ? { loan_id: loanId } : {}),
         created_by_user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       saveLocalExpense(expense);
-      toast({ title: 'Expense Recorded', description: `₹${parsedAmount.toLocaleString('en-IN')} recorded successfully.` });
+
+      // If linked to a loan, apply as manual payment (reduces balance / tenure)
+      if (loanId && loanId !== 'none') {
+        applyManualLoanPayment(loanId, parsedAmount, expense.id);
+      }
+
+      toast({ title: 'Expense Recorded', description: `₹${parsedAmount.toLocaleString('en-IN')} recorded successfully.${loanId && loanId !== 'none' ? ' Loan balance updated.' : ''}` });
       navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to record expense';
@@ -171,6 +182,30 @@ export default function NewExpensePage() {
         </div>
       ),
     },
+    ...(activeLoans.length > 0 ? [{
+      bg: 'bg-[#fef9c3]',
+      content: (
+        <div className="space-y-2">
+          <Label className="text-sm font-bold text-foreground">Link to Loan <span className="font-normal text-muted-foreground">(optional)</span></Label>
+          <Select value={loanId} onValueChange={setLoanId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Not linked to any loan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {activeLoans.map((loan) => (
+                <SelectItem key={loan.id} value={loan.id}>
+                  {loan.bank_name} — {loan.purpose}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {loanId && loanId !== 'none' && (
+            <p className="text-xs text-muted-foreground">This payment will reduce the loan balance and shorten the tenure.</p>
+          )}
+        </div>
+      ),
+    }] : []),
     {
       bg: 'bg-[#fde8e8]',
       content: (
