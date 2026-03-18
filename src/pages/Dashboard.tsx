@@ -9,14 +9,16 @@ import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
-import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, Wallet, MinusCircle } from 'lucide-react';
+import { Banknote, TrendingUp, Calendar, FileText, PlusCircle, Wallet, MinusCircle, Landmark, CreditCard } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { useDateFilter } from '@/hooks/useDateFilter';
 import { format, startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
-import type { Offering, Expense } from '@/types';
+import type { Offering, Expense, Loan } from '@/types';
 import { generateMonthlyPDF } from '@/lib/pdfExport';
 import { mockChurch, mockOfferings, mockExpenses } from '@/lib/mockData';
-import { getLocalOfferings, getLocalDenominations, getLocalExpenses } from '@/lib/localStorage';
+import { getLocalOfferings, getLocalDenominations, getLocalExpenses, getLocalLoans, getLocalLoanPayments } from '@/lib/localStorage';
+import { calculateRemainingBalance } from '@/lib/loanUtils';
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -42,6 +44,12 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [churchName, setChurchName] = useState('Church');
+  const activeLoans = useMemo(() => getLocalLoans().filter(l => l.status === 'active'), []);
+  const totalMonthlyEMI = useMemo(() => activeLoans.reduce((s, l) => s + l.monthly_emi, 0), [activeLoans]);
+  const totalOutstanding = useMemo(() => activeLoans.reduce((sum, loan) => {
+    const payments = getLocalLoanPayments(loan.id);
+    return sum + calculateRemainingBalance(loan.principal_amount, loan.interest_rate, loan.monthly_emi, payments.length);
+  }, 0), [activeLoans]);
 
   // Fetch church name
   useEffect(() => {
@@ -274,7 +282,10 @@ export default function DashboardPage() {
                   className={`${OFFERING_COLORS[i % OFFERING_COLORS.length]} rounded-2xl p-3.5 flex items-center justify-between`}
                 >
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-sm font-semibold text-foreground truncate">{expense.description}</span>
+                    <div className="flex items-center gap-1.5">
+                      {expense.loan_id && <CreditCard className="h-3 w-3 text-primary shrink-0" />}
+                      <span className="text-sm font-semibold text-foreground truncate">{expense.description}</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{format(new Date(expense.date), 'MMM d')}</span>
                       <span className="text-[10px] bg-white/60 px-1.5 py-0.5 rounded-sm text-muted-foreground">{expense.category}</span>
@@ -288,6 +299,61 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Active Loans Summary */}
+        {activeLoans.length > 0 && (
+          <div>
+            <div className="mb-2">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <Landmark className="h-3.5 w-3.5" /> Active Loans
+              </h2>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Outstanding: ₹{totalOutstanding.toLocaleString('en-IN')} &middot; EMI: ₹{totalMonthlyEMI.toLocaleString('en-IN')}/mo
+              </p>
+            </div>
+            <div className="space-y-2">
+              {activeLoans.map((loan, i) => {
+                const payments = getLocalLoanPayments(loan.id);
+                const paid = payments.length;
+                const progress = loan.tenure_months > 0 ? (paid / loan.tenure_months) * 100 : 0;
+                const outstanding = calculateRemainingBalance(loan.principal_amount, loan.interest_rate, loan.monthly_emi, paid);
+                return (
+                  <motion.div
+                    key={loan.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className={`${OFFERING_COLORS[i % OFFERING_COLORS.length]} rounded-2xl p-3.5`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <CreditCard className="h-3 w-3 text-foreground/50 shrink-0" />
+                          <span className="text-xs font-bold text-foreground truncate">{loan.bank_name}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground truncate">{loan.purpose}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <span className="text-xs font-extrabold text-foreground">₹{loan.monthly_emi.toLocaleString('en-IN')}</span>
+                        <p className="text-[10px] text-muted-foreground">/month</p>
+                      </div>
+                    </div>
+                    <Progress value={progress} className="h-1.5 mb-1" />
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>{paid} / {loan.tenure_months} paid</span>
+                      <span>₹{outstanding.toLocaleString('en-IN')} left</span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+            <Link to="/loans">
+              <Button variant="outline" size="sm" className="w-full mt-2 rounded-xl border-0 bg-white/60 text-xs">
+                View All Loans
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, PlusCircle, Clock, LogOut, BarChart3, Wallet } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Clock, LogOut, BarChart3, Wallet, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/history', icon: Clock, label: 'History', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/new-expense', icon: Wallet, label: 'Expenses', roles: ['treasurer', 'counter', 'pastor'] },
+  { to: '/loans', icon: Landmark, label: 'Loans', roles: ['treasurer'], mobileHidden: true },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -17,6 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   const filteredNav = navItems.filter((item) => role && item.roles.includes(role));
+  const mobileNav = filteredNav.filter((item) => !('mobileHidden' in item && item.mobileHidden));
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +73,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {/* Mobile bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-around px-1 py-1.5">
-          {filteredNav.map((item) => {
+          {mobileNav.map((item) => {
             const active = location.pathname === item.to;
             return (
               <Link

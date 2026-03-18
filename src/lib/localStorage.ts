@@ -1,4 +1,4 @@
-import type { Offering, Denomination, Expense } from '@/types';
+import type { Offering, Denomination, Expense, Loan, LoanPayment } from '@/types';
 
 const OFFERINGS_KEY = 'mock_offerings';
 const DENOMINATIONS_KEY = 'mock_denominations';
@@ -60,8 +60,66 @@ export function saveLocalExpense(expense: Expense): void {
   }
 }
 
+// Loan storage
+const LOANS_KEY = 'mock_loans';
+const LOAN_PAYMENTS_KEY = 'mock_loan_payments';
+
+export function getLocalLoans(): Loan[] {
+  try {
+    const data = localStorage.getItem(LOANS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalLoan(loan: Loan): void {
+  try {
+    const loans = getLocalLoans();
+    loans.push(loan);
+    localStorage.setItem(LOANS_KEY, JSON.stringify(loans));
+  } catch (err) {
+    console.error('Failed to save loan to localStorage:', err);
+  }
+}
+
+export function updateLocalLoan(loanId: string, updates: Partial<Loan>): void {
+  try {
+    const loans = getLocalLoans();
+    const index = loans.findIndex(l => l.id === loanId);
+    if (index !== -1) {
+      loans[index] = { ...loans[index], ...updates, updated_at: new Date().toISOString() };
+      localStorage.setItem(LOANS_KEY, JSON.stringify(loans));
+    }
+  } catch (err) {
+    console.error('Failed to update loan:', err);
+  }
+}
+
+export function getLocalLoanPayments(loanId?: string): LoanPayment[] {
+  try {
+    const data = localStorage.getItem(LOAN_PAYMENTS_KEY);
+    const all: LoanPayment[] = data ? JSON.parse(data) : [];
+    return loanId ? all.filter(p => p.loan_id === loanId) : all;
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalLoanPayment(payment: LoanPayment): void {
+  try {
+    const payments = getLocalLoanPayments();
+    payments.push(payment);
+    localStorage.setItem(LOAN_PAYMENTS_KEY, JSON.stringify(payments));
+  } catch (err) {
+    console.error('Failed to save loan payment:', err);
+  }
+}
+
 export function clearLocalData(): void {
   localStorage.removeItem(OFFERINGS_KEY);
   localStorage.removeItem(DENOMINATIONS_KEY);
   localStorage.removeItem(EXPENSES_KEY);
+  localStorage.removeItem(LOANS_KEY);
+  localStorage.removeItem(LOAN_PAYMENTS_KEY);
 }

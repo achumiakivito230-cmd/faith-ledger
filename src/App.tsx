@@ -12,7 +12,9 @@ import HistoryPage from "./pages/History";
 import VerifyPage from "./pages/Verify";
 import AnalyticsPage from "./pages/Analytics";
 import NewExpensePage from "./pages/NewExpense";
+import LoansPage from "./pages/Loans";
 import NotFound from "./pages/NotFound";
+import { useAutoEMI } from "@/hooks/useAutoEMI";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 
@@ -39,6 +41,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  useAutoEMI();
 
   // If logged in and on login page, redirect to dashboard
   if (!loading && user) {
@@ -52,6 +55,7 @@ function AppRoutes() {
         <Route path="/verify" element={<ProtectedRoute><VerifyPage /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
         <Route path="/new-expense" element={<ProtectedRoute><NewExpensePage /></ProtectedRoute>} />
+        <Route path="/loans" element={<ProtectedRoute><LoansPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );

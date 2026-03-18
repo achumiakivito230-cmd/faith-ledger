@@ -1,4 +1,4 @@
-import type { Offering, Denomination, Expense } from '@/types';
+import type { Offering, Denomination, Expense, Loan } from '@/types';
 
 export const mockChurch = {
   id: 'mock-church-1',
@@ -830,5 +830,38 @@ export const mockExpenses: Expense[] = [
     created_by_user_id: 'user-2',
     created_at: '2025-11-30T10:00:00Z',
     updated_at: '2025-11-30T10:00:00Z',
+  },
+];
+
+export const mockLoans: Loan[] = [
+  {
+    id: 'loan-2024-001',
+    church_id: 'mock-church-1',
+    bank_name: 'State Bank of India',
+    principal_amount: 500000,
+    interest_rate: 8.5,
+    tenure_months: 60,
+    start_date: '2024-01-01',
+    monthly_emi: 10279,
+    purpose: 'Church building renovation',
+    status: 'active',
+    created_by_user_id: 'user-2',
+    created_at: '2024-01-01T10:00:00Z',
+    updated_at: '2024-01-01T10:00:00Z',
+  },
+  {
+    id: 'loan-2023-001',
+    church_id: 'mock-church-1',
+    bank_name: 'HDFC Bank',
+    principal_amount: 200000,
+    interest_rate: 9.0,
+    tenure_months: 36,
+    start_date: '2023-06-01',
+    monthly_emi: 6360,
+    purpose: 'Audio system upgrade',
+    status: 'completed',
+    created_by_user_id: 'user-2',
+    created_at: '2023-06-01T10:00:00Z',
+    updated_at: '2026-06-01T10:00:00Z',
   },
 ];

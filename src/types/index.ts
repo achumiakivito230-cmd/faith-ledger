@@ -76,6 +76,7 @@ export type ExpenseCategory =
   | 'Charity / Outreach'
   | 'Supplies'
   | 'Events'
+  | 'Loan Repayment'
   | 'Miscellaneous';
 
 export type PaymentMethod = 'Cash' | 'Bank Transfer' | 'UPI' | 'Cheque';
@@ -89,6 +90,7 @@ export interface Expense {
   amount: number;
   payment_method: PaymentMethod;
   notes: string | null;
+  loan_id?: string;
   created_by_user_id: string;
   created_at: string;
   updated_at: string;
@@ -102,6 +104,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'Charity / Outreach',
   'Supplies',
   'Events',
+  'Loan Repayment',
   'Miscellaneous',
 ];
 
@@ -111,3 +114,35 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
   'UPI',
   'Cheque',
 ];
+
+// Loan types
+export type LoanStatus = 'active' | 'completed';
+
+export interface Loan {
+  id: string;
+  church_id: string;
+  bank_name: string;
+  principal_amount: number;
+  interest_rate: number;
+  tenure_months: number;
+  start_date: string;
+  monthly_emi: number;
+  purpose: string;
+  status: LoanStatus;
+  created_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoanPayment {
+  id: string;
+  loan_id: string;
+  expense_id: string;
+  payment_date: string;
+  emi_amount: number;
+  principal_component: number;
+  interest_component: number;
+  outstanding_balance: number;
+  payment_number: number;
+  created_at: string;
+}
