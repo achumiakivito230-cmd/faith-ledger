@@ -10,7 +10,7 @@ const navItems = [
   { to: '/history', icon: Clock, label: 'History', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['treasurer', 'counter', 'pastor'] },
   { to: '/new-expense', icon: Wallet, label: 'Expenses', roles: ['treasurer', 'counter', 'pastor'] },
-  { to: '/loans', icon: Landmark, label: 'Loans', roles: ['treasurer'], mobileHidden: true },
+  { to: '/loans', icon: Landmark, label: 'Loans', roles: ['treasurer', 'counter', 'pastor'], mobileHidden: true },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
