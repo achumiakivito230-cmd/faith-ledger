@@ -13,7 +13,7 @@ import { AnimatedText } from '@/components/ui/animated-text';
 import AnimatedNumber from '@/components/AnimatedNumber';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { mockChurch } from '@/lib/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { getLocalLoans, saveLocalLoan, getLocalLoanPayments, updateLocalLoan } from '@/lib/localStorage';
 import { calculateEMI, calculateRemainingBalance, getAmortizationSchedule } from '@/lib/loanUtils';
 import type { Loan, LoanPayment } from '@/types';
@@ -111,7 +111,7 @@ export default function LoansPage() {
     setSubmitting(true);
     const loan: Loan = {
       id: generateId(),
-      church_id: churchId || mockChurch.id,
+      church_id: churchId!,
       bank_name: bankName.trim(),
       principal_amount: principal,
       interest_rate: rate,

@@ -15,15 +15,10 @@ import { format, getDaysInMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DENOMINATIONS } from '@/types';
-import { mockChurch } from '@/lib/mockData';
-import { saveLocalOffering } from '@/lib/localStorage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDateFilter } from '@/hooks/useDateFilter';
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-// Simple ID generator
-const generateId = () => `offering-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const DENOM_COLORS = [
   'bg-[#fef3c7]', // warm yellow
@@ -72,38 +67,39 @@ export default function NewOfferingPage() {
 
     setSubmitting(true);
     try {
-      const effectiveChurchId = churchId || mockChurch.id;
-      const offeringId = generateId();
+      // Insert offering to Supabase
+      const { data: offeringData, error: offeringError } = await supabase
+        .from('offerings')
+        .insert({
+          church_id: churchId!,
+          date: format(date, 'yyyy-MM-dd'),
+          total_amount: total,
+          counted_by_user_id: user.id,
+          verified_by_user_id: user.id,
+          verified_at: new Date().toISOString(),
+          status: 'verified' as const,
+          notes: null,
+        })
+        .select('id')
+        .single();
 
-      // Create offering object
-      const offering = {
-        id: offeringId,
-        church_id: effectiveChurchId,
-        date: format(date, 'yyyy-MM-dd'),
-        total_amount: total,
-        counted_by_user_id: user.id,
-        verified_by_user_id: user.id,
-        verified_at: new Date().toISOString(),
-        status: 'verified' as const,
-        notes: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      if (offeringError) throw offeringError;
 
-      // Create denomination object
-      const denomination = {
-        offering_id: offeringId,
-        note_500: counts.note_500,
-        note_200: counts.note_200,
-        note_100: counts.note_100,
-        note_50: counts.note_50,
-        note_20: counts.note_20,
-        note_10: counts.note_10,
-        total_notes: totalNotes,
-      };
+      // Insert denominations
+      const { error: denomError } = await supabase
+        .from('denominations')
+        .insert({
+          offering_id: offeringData.id,
+          note_500: counts.note_500,
+          note_200: counts.note_200,
+          note_100: counts.note_100,
+          note_50: counts.note_50,
+          note_20: counts.note_20,
+          note_10: counts.note_10,
+          total_notes: totalNotes,
+        });
 
-      // Save to localStorage
-      saveLocalOffering(offering, denomination);
+      if (denomError) throw denomError;
 
       toast({ title: 'Offering Submitted', description: `₹${total.toLocaleString('en-IN')} submitted successfully.` });
       navigate('/');

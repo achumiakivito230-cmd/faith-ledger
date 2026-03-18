@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import AppLayout from '@/components/AppLayout';
@@ -18,12 +18,9 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
 import type { ExpenseCategory, PaymentMethod } from '@/types';
-import { mockChurch } from '@/lib/mockData';
-import { saveLocalExpense, getLocalLoans } from '@/lib/localStorage';
-import { applyManualLoanPayment } from '@/lib/loanUtils';
+import { supabase } from '@/integrations/supabase/client';
 import { useDateFilter } from '@/hooks/useDateFilter';
-
-const generateId = () => `expense-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+import type { Loan } from '@/types';
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'backspace'] as const;
 
@@ -41,8 +38,20 @@ export default function NewExpensePage() {
   const [loanId, setLoanId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [showNumpad, setShowNumpad] = useState(false);
+  const [activeLoans, setActiveLoans] = useState<Loan[]>([]);
 
-  const activeLoans = getLocalLoans().filter(l => l.status === 'active');
+  // Fetch active loans from Supabase
+  useEffect(() => {
+    if (!churchId) return;
+    supabase
+      .from('loans')
+      .select('*')
+      .eq('church_id', churchId)
+      .eq('status', 'active')
+      .then(({ data }) => {
+        setActiveLoans((data ?? []) as Loan[]);
+      });
+  }, [churchId]);
 
   const parsedAmount = parseFloat(amount) || 0;
 
@@ -81,29 +90,23 @@ export default function NewExpensePage() {
 
     setSubmitting(true);
     try {
-      const expense = {
-        id: generateId(),
-        church_id: churchId || mockChurch.id,
-        date: format(date, 'yyyy-MM-dd'),
-        category: category as ExpenseCategory,
-        description: description.trim(),
-        amount: parsedAmount,
-        payment_method: paymentMethod as PaymentMethod,
-        notes: notes.trim() || null,
-        ...(loanId && loanId !== 'none' ? { loan_id: loanId } : {}),
-        created_by_user_id: user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const { error } = await supabase
+        .from('expenses')
+        .insert({
+          church_id: churchId!,
+          date: format(date, 'yyyy-MM-dd'),
+          category: category as ExpenseCategory,
+          description: description.trim(),
+          amount: parsedAmount,
+          payment_method: paymentMethod as PaymentMethod,
+          notes: notes.trim() || null,
+          ...(loanId && loanId !== 'none' ? { loan_id: loanId } : {}),
+          created_by_user_id: user.id,
+        });
 
-      saveLocalExpense(expense);
+      if (error) throw error;
 
-      // If linked to a loan, apply as manual payment (reduces balance / tenure)
-      if (loanId && loanId !== 'none') {
-        applyManualLoanPayment(loanId, parsedAmount, expense.id);
-      }
-
-      toast({ title: 'Expense Recorded', description: `₹${parsedAmount.toLocaleString('en-IN')} recorded successfully.${loanId && loanId !== 'none' ? ' Loan balance updated.' : ''}` });
+      toast({ title: 'Expense Recorded', description: `₹${parsedAmount.toLocaleString('en-IN')} recorded successfully.` });
       navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to record expense';

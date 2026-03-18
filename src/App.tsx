@@ -38,6 +38,24 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ChurchRequiredRoute({ children }: { children: React.ReactNode }) {
+  const { churchId, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!churchId) {
+    return <Navigate to="/church-setup" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -49,13 +67,13 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/church-setup" element={<ProtectedRoute><ChurchSetupPage /></ProtectedRoute>} />
-        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/new-offering" element={<ProtectedRoute><NewOfferingPage /></ProtectedRoute>} />
-        <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-        <Route path="/verify" element={<ProtectedRoute><VerifyPage /></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
-        <Route path="/new-expense" element={<ProtectedRoute><NewExpensePage /></ProtectedRoute>} />
-        <Route path="/loans" element={<ProtectedRoute><LoansPage /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><ChurchRequiredRoute><DashboardPage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/new-offering" element={<ProtectedRoute><ChurchRequiredRoute><NewOfferingPage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><ChurchRequiredRoute><HistoryPage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/verify" element={<ProtectedRoute><ChurchRequiredRoute><VerifyPage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><ChurchRequiredRoute><AnalyticsPage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/new-expense" element={<ProtectedRoute><ChurchRequiredRoute><NewExpensePage /></ChurchRequiredRoute></ProtectedRoute>} />
+        <Route path="/loans" element={<ProtectedRoute><ChurchRequiredRoute><LoansPage /></ChurchRequiredRoute></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );

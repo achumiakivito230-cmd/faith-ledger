@@ -3,23 +3,6 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile, UserRole } from '@/types';
 
-// Mock user for demo/testing when no real auth
-const MOCK_USER: User = {
-  id: 'mock-user-123',
-  aud: 'authenticated',
-  role: 'authenticated',
-  email: 'demo@church.com',
-  email_confirmed_at: new Date().toISOString(),
-  phone: '',
-  confirmed_at: new Date().toISOString(),
-  last_sign_in_at: new Date().toISOString(),
-  app_metadata: {},
-  user_metadata: { name: 'Demo User' },
-  identities: [],
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
-
 interface AuthContextType {
   session: Session | null;
   user: User | null;

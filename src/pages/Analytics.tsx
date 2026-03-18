@@ -1,15 +1,16 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import StatCard from '@/components/StatCard';
 import BarChartMedium from '@/components/ui/bar-chart-medium';
 import { LiveOfferingDashboard } from '@/components/ui/live-offering-dashboard';
-import { mockOfferings, mockExpenses } from '@/lib/mockData';
-import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
 import DateFilterBar from '@/components/DateFilterBar';
 import { useDateFilter } from '@/hooks/useDateFilter';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import type { Offering, Expense } from '@/types';
 
 const WARM = {
   cream: 'bg-[#fef3c7]',
@@ -19,36 +20,52 @@ const WARM = {
 };
 
 export default function AnalyticsPage() {
+  const { churchId } = useAuth();
   const { month, year, day, setMonth, setYear, setDay } = useDateFilter();
-  let start: Date, end: Date;
-  if (month === null) {
-    start = new Date(year, 0, 1);
-    end = new Date(year, 11, 31, 23, 59, 59);
-  } else if (day !== null) {
-    start = new Date(year, month, day);
-    end = new Date(year, month, day, 23, 59, 59);
-  } else {
-    start = startOfMonth(new Date(year, month));
-    end = endOfMonth(new Date(year, month));
-  }
+  const [allOfferings, setAllOfferings] = useState<Offering[]>([]);
+  const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
 
-  const allOfferings = useMemo(() => {
-    return [...mockOfferings, ...getLocalOfferings()].filter((o) => {
-      const d = new Date(o.date);
-      return d >= start && d <= end;
-    });
-  }, [start, end]);
+  useEffect(() => {
+    if (!churchId) return;
+    let start: Date, end: Date;
+    if (month === null) {
+      start = new Date(year, 0, 1);
+      end = new Date(year, 11, 31, 23, 59, 59);
+    } else if (day !== null) {
+      start = new Date(year, month, day);
+      end = new Date(year, month, day, 23, 59, 59);
+    } else {
+      start = startOfMonth(new Date(year, month));
+      end = endOfMonth(new Date(year, month));
+    }
 
-  const allExpenses = useMemo(() => {
-    return [...mockExpenses, ...getLocalExpenses()].filter((e) => {
-      const d = new Date(e.date);
-      return d >= start && d <= end;
+    const startStr = format(start, 'yyyy-MM-dd');
+    const endStr = format(end, 'yyyy-MM-dd');
+
+    Promise.all([
+      supabase
+        .from('offerings')
+        .select('*')
+        .eq('church_id', churchId)
+        .gte('date', startStr)
+        .lte('date', endStr)
+        .order('date', { ascending: false }),
+      supabase
+        .from('expenses')
+        .select('*')
+        .eq('church_id', churchId)
+        .gte('date', startStr)
+        .lte('date', endStr)
+        .order('date', { ascending: false }),
+    ]).then(([offeringsRes, expensesRes]) => {
+      setAllOfferings((offeringsRes.data ?? []) as Offering[]);
+      setAllExpenses((expensesRes.data ?? []) as Expense[]);
     });
-  }, [start, end]);
+  }, [churchId, month, year, day]);
 
   const stats = useMemo(() => {
-    const total = allOfferings.reduce((s, o) => s + o.total_amount, 0);
-    const verified = allOfferings.filter((o) => o.status === 'verified').reduce((s, o) => s + o.total_amount, 0);
+    const total = allOfferings.reduce((s, o) => s + Number(o.total_amount), 0);
+    const verified = allOfferings.filter((o) => o.status === 'verified').reduce((s, o) => s + Number(o.total_amount), 0);
     const pending = allOfferings.filter((o) => o.status === 'pending').length;
     const totalExpenses = allExpenses.reduce((s, e) => s + e.amount, 0);
     const netBalance = total - totalExpenses;
@@ -60,7 +77,7 @@ export default function AnalyticsPage() {
       const full = o.notes || `Offering ${o.id.slice(-2)}`;
       const words = full.split(/[\s\-–]+/);
       const short = words.length > 2 ? words.slice(0, 2).join(' ') : full;
-      return { key: short, data: o.total_amount };
+      return { key: short, data: Number(o.total_amount) };
     });
   }, [allOfferings]);
 
