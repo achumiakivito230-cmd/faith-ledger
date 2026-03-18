@@ -267,7 +267,6 @@ const BarChartMedium: React.FC<BarChartMediumProps> = ({
                 <BarSeries
                   bar={
                     <Bar
-                      glow={{ blur: 15, opacity: 0.4 }}
                       gradient={null}
                       label={<BarLabel position="top" fill="#64748b" fontSize={10} padding={4} />}
                     />

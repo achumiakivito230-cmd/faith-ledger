@@ -12,7 +12,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarIcon, Send, Delete } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
-import { format, getDaysInMonth } from 'date-fns';
+import DateFilterBar from '@/components/DateFilterBar';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
@@ -22,7 +23,6 @@ import { saveLocalExpense, getLocalLoans } from '@/lib/localStorage';
 import { applyManualLoanPayment } from '@/lib/loanUtils';
 import { useDateFilter } from '@/hooks/useDateFilter';
 
-const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const generateId = () => `expense-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'backspace'] as const;
@@ -231,42 +231,7 @@ export default function NewExpensePage() {
               <AnimatedText text="New Expense" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
               <p className="text-sm text-muted-foreground mt-2">Record a church expense</p>
             </div>
-            <div className="flex items-center gap-1.5">
-              {month !== null && (
-                <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
-                  <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
-                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <Select value={month === null ? 'all' : String(month)} onValueChange={(v) => { setMonth(v === 'all' ? null : Number(v)); setDay(null); }}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {months.map((m, i) => (
-                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setDay(null); }}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[2024, 2025, 2026, 2027].map((y) => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <DateFilterBar month={month} year={year} day={day} setMonth={setMonth} setYear={setYear} setDay={setDay} />
           </div>
         </div>
 

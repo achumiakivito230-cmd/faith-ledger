@@ -7,11 +7,9 @@ import { mockOfferings, mockExpenses } from '@/lib/mockData';
 import { getLocalOfferings, getLocalExpenses } from '@/lib/localStorage';
 import { Banknote, TrendingUp, CheckCircle, Clock, MinusCircle, Wallet } from 'lucide-react';
 import { AnimatedText } from '@/components/ui/animated-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DateFilterBar from '@/components/DateFilterBar';
 import { useDateFilter } from '@/hooks/useDateFilter';
-import { startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
-
-const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 const WARM = {
   cream: 'bg-[#fef3c7]',
@@ -76,42 +74,7 @@ export default function AnalyticsPage() {
               <AnimatedText text="Analytics" textClassName="text-[28px] font-extrabold tracking-tight text-foreground" underlineHeight="h-0.5" underlineOffset="-bottom-1" duration={0.04} delay={0.03} />
               <p className="text-sm text-muted-foreground mt-2">Offering insights & trends</p>
             </div>
-            <div className="flex items-center gap-1.5">
-              {month !== null && (
-                <Select value={day === null ? 'all' : String(day)} onValueChange={(v) => setDay(v === 'all' ? null : Number(v))}>
-                  <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {Array.from({ length: getDaysInMonth(new Date(year, month)) }, (_, i) => i + 1).map((d) => (
-                      <SelectItem key={d} value={String(d)}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <Select value={month === null ? 'all' : String(month)} onValueChange={(v) => { setMonth(v === 'all' ? null : Number(v)); setDay(null); }}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {months.map((m, i) => (
-                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setDay(null); }}>
-                <SelectTrigger className="h-8 px-2.5 text-xs bg-white/60 border-0 rounded-xl font-medium">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[2024, 2025, 2026, 2027].map((y) => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <DateFilterBar month={month} year={year} day={day} setMonth={setMonth} setYear={setYear} setDay={setDay} />
           </div>
         </div>
 
