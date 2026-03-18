@@ -9,16 +9,18 @@ export function useAutoEMI() {
   const { user, churchId } = useAuth();
 
   useEffect(() => {
-    if (!user || !churchId) return;
+    if (!user) return;
+
+    const effectiveChurchId = churchId || 'mock-church-1';
 
     // Seed mock loans once
     const existing = getLocalLoans();
     if (existing.length === 0) {
       for (const loan of mockLoans) {
-        saveLocalLoan(loan);
+        saveLocalLoan({ ...loan, church_id: effectiveChurchId });
       }
     }
 
-    generateDueEMIs(churchId, user.id);
+    generateDueEMIs(effectiveChurchId, user.id);
   }, [user, churchId]);
 }
