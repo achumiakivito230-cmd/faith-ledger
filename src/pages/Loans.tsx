@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import AnimatedNumber from '@/components/AnimatedNumber';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getLocalLoans, saveLocalLoan, getLocalLoanPayments, updateLocalLoan } from '@/lib/localStorage';
 import { calculateEMI, calculateRemainingBalance, getAmortizationSchedule } from '@/lib/loanUtils';
 import type { Loan, LoanPayment } from '@/types';
 
@@ -29,8 +28,6 @@ const CARD_COLORS = [WARM.cream, WARM.blush, WARM.sand, WARM.linen];
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'backspace'] as const;
 
-const generateId = () => `loan-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
 const currencyFormat = { style: 'currency' as const, currency: 'INR', maximumFractionDigits: 0 };
 
 export default function LoansPage() {
@@ -38,7 +35,9 @@ export default function LoansPage() {
   const { toast } = useToast();
 
   // Loan list state
-  const [loans, setLoans] = useState<Loan[]>(() => getLocalLoans());
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loanPayments, setLoanPayments] = useState<LoanPayment[]>([]);
+  const [loadingLoans, setLoadingLoans] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -62,15 +61,44 @@ export default function LoansPage() {
   const calculatedEMI = principal > 0 && rate > 0 && tenure > 0 ? calculateEMI(principal, rate, tenure) : 0;
   const actualEMI = useCustomEMI ? (parseFloat(customEMIStr) || 0) : calculatedEMI;
 
+  // Fetch loans + payments from Supabase
+  const fetchData = useCallback(async () => {
+    if (!churchId) return;
+    setLoadingLoans(true);
+
+    const { data: loansData } = await supabase
+      .from('loans')
+      .select('*')
+      .eq('church_id', churchId)
+      .order('created_at', { ascending: false });
+
+    const loadedLoans = (loansData ?? []) as Loan[];
+    setLoans(loadedLoans);
+
+    if (loadedLoans.length > 0) {
+      const { data: paymentsData } = await supabase
+        .from('loan_payments')
+        .select('*')
+        .in('loan_id', loadedLoans.map(l => l.id));
+      setLoanPayments((paymentsData ?? []) as LoanPayment[]);
+    } else {
+      setLoanPayments([]);
+    }
+
+    setLoadingLoans(false);
+  }, [churchId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
   const activeLoans = useMemo(() => loans.filter(l => l.status === 'active'), [loans]);
   const completedLoans = useMemo(() => loans.filter(l => l.status === 'completed'), [loans]);
 
   const totalOutstanding = useMemo(() => {
     return activeLoans.reduce((sum, loan) => {
-      const payments = getLocalLoanPayments(loan.id);
+      const payments = loanPayments.filter(p => p.loan_id === loan.id);
       return sum + calculateRemainingBalance(loan.principal_amount, loan.interest_rate, loan.monthly_emi, payments.length);
     }, 0);
-  }, [activeLoans]);
+  }, [activeLoans, loanPayments]);
 
   const totalMonthlyEMI = useMemo(() => activeLoans.reduce((s, l) => s + l.monthly_emi, 0), [activeLoans]);
 
@@ -100,7 +128,7 @@ export default function LoansPage() {
     setActiveNumpad(null);
   };
 
-  const handleAddLoan = () => {
+  const handleAddLoan = async () => {
     if (!user) return;
     if (!bankName.trim()) { toast({ title: 'Bank name is required', variant: 'destructive' }); return; }
     if (principal <= 0) { toast({ title: 'Enter a valid loan amount', variant: 'destructive' }); return; }
@@ -109,8 +137,7 @@ export default function LoansPage() {
     if (actualEMI <= 0) { toast({ title: 'EMI amount is invalid', variant: 'destructive' }); return; }
 
     setSubmitting(true);
-    const loan: Loan = {
-      id: generateId(),
+    const { error } = await supabase.from('loans').insert({
       church_id: churchId!,
       bank_name: bankName.trim(),
       principal_amount: principal,
@@ -121,23 +148,29 @@ export default function LoansPage() {
       purpose: purpose.trim() || 'General',
       status: 'active',
       created_by_user_id: user.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    });
 
-    saveLocalLoan(loan);
-    setLoans(getLocalLoans());
-    resetForm();
-    setAddOpen(false);
+    if (error) {
+      toast({ title: 'Error adding loan', description: error.message, variant: 'destructive' });
+    } else {
+      await fetchData();
+      resetForm();
+      setAddOpen(false);
+      toast({ title: 'Loan added successfully' });
+    }
     setSubmitting(false);
-    toast({ title: 'Loan added successfully' });
   };
 
-  const handleMarkCompleted = (loanId: string) => {
-    updateLocalLoan(loanId, { status: 'completed' });
-    setLoans(getLocalLoans());
-    setDetailOpen(false);
-    toast({ title: 'Loan marked as completed' });
+  const handleMarkCompleted = async (loanId: string) => {
+    const { error } = await supabase
+      .from('loans')
+      .update({ status: 'completed', updated_at: new Date().toISOString() })
+      .eq('id', loanId);
+    if (!error) {
+      await fetchData();
+      setDetailOpen(false);
+      toast({ title: 'Loan marked as completed' });
+    }
   };
 
   const openDetail = (loan: Loan) => {
@@ -379,14 +412,24 @@ export default function LoansPage() {
         {/* Active Loans */}
         <div className="mb-4">
           <h2 className="text-sm font-bold text-foreground mb-2">Active Loans ({activeLoans.length})</h2>
-          {activeLoans.length === 0 ? (
+          {loadingLoans ? (
             <div className={`${WARM.cream} rounded-2xl p-8 text-center text-sm text-muted-foreground`}>
-              No active loans. Add one to get started.
+              Loading...
+            </div>
+          ) : activeLoans.length === 0 ? (
+            <div className={`${WARM.cream} rounded-2xl p-8 text-center text-sm text-muted-foreground`}>
+              No active loans. Tap "Add New Loan" to get started.
             </div>
           ) : (
             <div className="space-y-2">
               {activeLoans.map((loan, i) => (
-                <LoanCard key={loan.id} loan={loan} index={i} onClick={() => openDetail(loan)} />
+                <LoanCard
+                  key={loan.id}
+                  loan={loan}
+                  index={i}
+                  payments={loanPayments.filter(p => p.loan_id === loan.id)}
+                  onClick={() => openDetail(loan)}
+                />
               ))}
             </div>
           )}
@@ -411,7 +454,14 @@ export default function LoansPage() {
                   className="space-y-2 overflow-hidden"
                 >
                   {completedLoans.map((loan, i) => (
-                    <LoanCard key={loan.id} loan={loan} index={i} completed onClick={() => openDetail(loan)} />
+                    <LoanCard
+                      key={loan.id}
+                      loan={loan}
+                      index={i}
+                      payments={loanPayments.filter(p => p.loan_id === loan.id)}
+                      completed
+                      onClick={() => openDetail(loan)}
+                    />
                   ))}
                 </motion.div>
               )}
@@ -425,6 +475,7 @@ export default function LoansPage() {
             {selectedLoan && (
               <LoanDetail
                 loan={selectedLoan}
+                payments={loanPayments.filter(p => p.loan_id === selectedLoan.id)}
                 onMarkCompleted={() => handleMarkCompleted(selectedLoan.id)}
               />
             )}
@@ -435,8 +486,13 @@ export default function LoansPage() {
   );
 }
 
-function LoanCard({ loan, index, completed, onClick }: { loan: Loan; index: number; completed?: boolean; onClick: () => void }) {
-  const payments = getLocalLoanPayments(loan.id);
+function LoanCard({ loan, index, payments, completed, onClick }: {
+  loan: Loan;
+  index: number;
+  payments: LoanPayment[];
+  completed?: boolean;
+  onClick: () => void;
+}) {
   const paid = payments.length;
   const progress = loan.tenure_months > 0 ? (paid / loan.tenure_months) * 100 : 0;
   const outstanding = completed ? 0 : calculateRemainingBalance(loan.principal_amount, loan.interest_rate, loan.monthly_emi, paid);
@@ -477,8 +533,11 @@ function LoanCard({ loan, index, completed, onClick }: { loan: Loan; index: numb
   );
 }
 
-function LoanDetail({ loan, onMarkCompleted }: { loan: Loan; onMarkCompleted: () => void }) {
-  const payments = getLocalLoanPayments(loan.id);
+function LoanDetail({ loan, payments, onMarkCompleted }: {
+  loan: Loan;
+  payments: LoanPayment[];
+  onMarkCompleted: () => void;
+}) {
   const schedule = getAmortizationSchedule(loan);
   const paid = payments.length;
   const outstanding = calculateRemainingBalance(loan.principal_amount, loan.interest_rate, loan.monthly_emi, paid);

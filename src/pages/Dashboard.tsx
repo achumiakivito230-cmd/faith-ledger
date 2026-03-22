@@ -251,16 +251,27 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Loans Summary */}
-        {activeLoans.length > 0 && (
-          <div>
-            <div className="mb-2">
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <div>
               <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                 <Landmark className="h-3.5 w-3.5" /> Active Loans
               </h2>
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                EMI: ₹{totalMonthlyEMI.toLocaleString('en-IN')}/mo
+                {activeLoans.length > 0 ? `EMI: ₹${totalMonthlyEMI.toLocaleString('en-IN')}/mo` : 'No active loans'}
               </p>
             </div>
+            <Link to="/loans">
+              <Button variant="outline" size="sm" className="rounded-xl border-0 bg-white/60 text-xs">
+                {activeLoans.length > 0 ? 'View All' : 'Add Loan'}
+              </Button>
+            </Link>
+          </div>
+          {activeLoans.length === 0 ? (
+            <div className="bg-[#fdf2d6] rounded-2xl p-6 text-center text-sm text-muted-foreground">
+              No active loans. Tap "Add Loan" to record a bank loan.
+            </div>
+          ) : (
             <div className="space-y-2">
               {activeLoans.map((loan, i) => (
                 <motion.div
@@ -286,13 +297,8 @@ export default function DashboardPage() {
                 </motion.div>
               ))}
             </div>
-            <Link to="/loans">
-              <Button variant="outline" size="sm" className="w-full mt-2 rounded-xl border-0 bg-white/60 text-xs">
-                View All Loans
-              </Button>
-            </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AppLayout>
   );

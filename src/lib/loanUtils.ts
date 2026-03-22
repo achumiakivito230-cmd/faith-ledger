@@ -1,12 +1,6 @@
 import { addMonths, startOfDay, format, isBefore, isEqual } from 'date-fns';
-import {
-  getLocalLoans,
-  getLocalLoanPayments,
-  saveLocalLoanPayment,
-  saveLocalExpense,
-  updateLocalLoan,
-} from './localStorage';
-import type { Loan, LoanPayment, Expense } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { Loan, LoanPayment } from '@/types';
 
 /** Standard EMI formula: P × r × (1+r)^n / ((1+r)^n - 1) */
 export function calculateEMI(principal: number, annualRate: number, tenureMonths: number): number {
@@ -62,106 +56,55 @@ export function getAmortizationSchedule(loan: Loan): Array<{
   return schedule;
 }
 
-/** Apply a manual / lump-sum payment to a loan. Reduces tenure (same EMI, fewer months). */
-export function applyManualLoanPayment(
-  loanId: string,
-  amount: number,
-  expenseId: string,
-): void {
-  const loans = getLocalLoans();
-  const loan = loans.find(l => l.id === loanId);
-  if (!loan || loan.status !== 'active') return;
+/** Check all active loans and generate any due EMI expenses + payments in Supabase */
+export async function generateDueEMIs(churchId: string, userId: string): Promise<void> {
+  const { data: loansData } = await supabase
+    .from('loans')
+    .select('*')
+    .eq('church_id', churchId)
+    .eq('status', 'active');
 
-  const existingPayments = getLocalLoanPayments(loanId);
-  const paidCount = existingPayments.length;
+  if (!loansData || loansData.length === 0) return;
 
-  // Current outstanding balance
-  const outstanding = calculateRemainingBalance(
-    loan.principal_amount,
-    loan.interest_rate,
-    loan.monthly_emi,
-    paidCount,
-  );
-
-  if (outstanding <= 0) return;
-
-  const effectiveAmount = Math.min(amount, outstanding);
-  const newBalance = Math.max(0, outstanding - effectiveAmount);
-
-  // Create a LoanPayment record for this manual payment
-  const payment: LoanPayment = {
-    id: `payment-manual-${expenseId}`,
-    loan_id: loanId,
-    expense_id: expenseId,
-    payment_date: format(new Date(), 'yyyy-MM-dd'),
-    emi_amount: effectiveAmount,
-    principal_component: effectiveAmount, // lump sum goes entirely to principal
-    interest_component: 0,
-    outstanding_balance: newBalance,
-    payment_number: paidCount + 1,
-    created_at: new Date().toISOString(),
-  };
-
-  saveLocalLoanPayment(payment);
-
-  if (newBalance <= 0) {
-    // Fully paid off
-    updateLocalLoan(loanId, { status: 'completed' });
-  } else {
-    // Reduce tenure: how many months at current EMI to pay off newBalance
-    const r = loan.interest_rate / 12 / 100;
-    let newTenure: number;
-    if (r === 0) {
-      newTenure = Math.ceil(newBalance / loan.monthly_emi);
-    } else {
-      // n = log(EMI / (EMI - B*r)) / log(1+r)
-      const ratio = loan.monthly_emi / (loan.monthly_emi - newBalance * r);
-      if (ratio <= 0) {
-        newTenure = 1; // fallback
-      } else {
-        newTenure = Math.ceil(Math.log(ratio) / Math.log(1 + r));
-      }
-    }
-    // Total tenure = payments already made + 1 (this payment) + remaining months
-    updateLocalLoan(loanId, { tenure_months: paidCount + 1 + newTenure });
-  }
-}
-
-/** Check all active loans and generate any due EMI expenses + payments */
-export function generateDueEMIs(churchId: string, userId: string): void {
-  const loans = getLocalLoans().filter(l => l.status === 'active' && l.church_id === churchId);
+  const loans = loansData as Loan[];
   const today = startOfDay(new Date());
 
   for (const loan of loans) {
-    const existingPayments = getLocalLoanPayments(loan.id);
+    const { data: existingPaymentsData } = await supabase
+      .from('loan_payments')
+      .select('*')
+      .eq('loan_id', loan.id)
+      .order('payment_number', { ascending: true });
+
+    const existingPayments = (existingPaymentsData ?? []) as LoanPayment[];
     const paidCount = existingPayments.length;
 
-    // Generate all due EMIs (not just the next one)
     for (let n = paidCount + 1; n <= loan.tenure_months; n++) {
       const dueDate = startOfDay(addMonths(new Date(loan.start_date), n - 1));
 
-      if (isBefore(dueDate, today) || isEqual(dueDate, today)) {
-        // Check not already generated
-        const alreadyExists = existingPayments.some(p => p.payment_number === n);
-        if (alreadyExists) continue;
+      if (!(isBefore(dueDate, today) || isEqual(dueDate, today))) break;
 
-        const balance = calculateRemainingBalance(
-          loan.principal_amount,
-          loan.interest_rate,
-          loan.monthly_emi,
-          n - 1,
-        );
-        const r = loan.interest_rate / 12 / 100;
-        const interestComp = Math.round(balance * r);
-        const principalComp = Math.min(loan.monthly_emi - interestComp, balance);
-        const newBalance = Math.max(0, balance - principalComp);
+      const alreadyExists = existingPayments.some(p => p.payment_number === n);
+      if (alreadyExists) continue;
 
-        const expenseId = `emi-${loan.id}-${n}`;
+      const balance = calculateRemainingBalance(
+        loan.principal_amount,
+        loan.interest_rate,
+        loan.monthly_emi,
+        n - 1,
+      );
+      const r = loan.interest_rate / 12 / 100;
+      const interestComp = Math.round(balance * r);
+      const principalComp = Math.min(loan.monthly_emi - interestComp, balance);
+      const newBalance = Math.max(0, balance - principalComp);
+      const dueDateStr = format(dueDate, 'yyyy-MM-dd');
 
-        const expense: Expense = {
-          id: expenseId,
+      // Insert expense record first to get its ID
+      const { data: expenseData, error: expenseError } = await supabase
+        .from('expenses')
+        .insert({
           church_id: churchId,
-          date: format(dueDate, 'yyyy-MM-dd'),
+          date: dueDateStr,
           category: 'Loan Repayment',
           description: `EMI #${n} - ${loan.bank_name} (${loan.purpose})`,
           amount: loan.monthly_emi,
@@ -169,35 +112,77 @@ export function generateDueEMIs(churchId: string, userId: string): void {
           notes: `Auto-generated | Principal: ₹${principalComp.toLocaleString('en-IN')} | Interest: ₹${interestComp.toLocaleString('en-IN')}`,
           loan_id: loan.id,
           created_by_user_id: userId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        })
+        .select('id')
+        .single();
 
-        const payment: LoanPayment = {
-          id: `payment-${expenseId}`,
-          loan_id: loan.id,
-          expense_id: expenseId,
-          payment_date: format(dueDate, 'yyyy-MM-dd'),
-          emi_amount: loan.monthly_emi,
-          principal_component: principalComp,
-          interest_component: interestComp,
-          outstanding_balance: newBalance,
-          payment_number: n,
-          created_at: new Date().toISOString(),
-        };
+      if (expenseError || !expenseData) continue;
 
-        saveLocalExpense(expense);
-        saveLocalLoanPayment(payment);
-        existingPayments.push(payment); // track within this run
-      } else {
-        break; // future EMIs, stop
-      }
+      await supabase.from('loan_payments').insert({
+        loan_id: loan.id,
+        expense_id: expenseData.id,
+        payment_date: dueDateStr,
+        emi_amount: loan.monthly_emi,
+        principal_component: principalComp,
+        interest_component: interestComp,
+        outstanding_balance: newBalance,
+        payment_number: n,
+      });
+
+      // Track locally to avoid double-inserting within the same run
+      existingPayments.push({ payment_number: n } as LoanPayment);
     }
 
-    // Check if loan is fully paid
-    const totalPayments = getLocalLoanPayments(loan.id).length;
-    if (totalPayments >= loan.tenure_months) {
-      updateLocalLoan(loan.id, { status: 'completed' });
+    // Mark loan as completed if all EMIs are paid
+    const { data: finalPayments } = await supabase
+      .from('loan_payments')
+      .select('id', { count: 'exact' })
+      .eq('loan_id', loan.id);
+
+    if ((finalPayments?.length ?? 0) >= loan.tenure_months) {
+      await supabase
+        .from('loans')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('id', loan.id);
     }
+  }
+}
+
+/** Apply a manual payment to a loan — inserts a loan_payment record in Supabase */
+export async function applyManualLoanPayment(
+  loan: Loan,
+  amount: number,
+  expenseId: string,
+  paidCount: number,
+): Promise<void> {
+  if (loan.status !== 'active') return;
+
+  const outstanding = calculateRemainingBalance(
+    loan.principal_amount,
+    loan.interest_rate,
+    loan.monthly_emi,
+    paidCount,
+  );
+  if (outstanding <= 0) return;
+
+  const effectiveAmount = Math.min(amount, outstanding);
+  const newBalance = Math.max(0, outstanding - effectiveAmount);
+
+  await supabase.from('loan_payments').insert({
+    loan_id: loan.id,
+    expense_id: expenseId,
+    payment_date: format(new Date(), 'yyyy-MM-dd'),
+    emi_amount: effectiveAmount,
+    principal_component: effectiveAmount,
+    interest_component: 0,
+    outstanding_balance: newBalance,
+    payment_number: paidCount + 1,
+  });
+
+  if (newBalance <= 0) {
+    await supabase
+      .from('loans')
+      .update({ status: 'completed', updated_at: new Date().toISOString() })
+      .eq('id', loan.id);
   }
 }

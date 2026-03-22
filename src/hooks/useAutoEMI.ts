@@ -8,6 +8,6 @@ export function useAutoEMI() {
 
   useEffect(() => {
     if (!user || !churchId) return;
-    generateDueEMIs(churchId, user.id);
+    generateDueEMIs(churchId, user.id).catch(console.error);
   }, [user, churchId]);
 }
