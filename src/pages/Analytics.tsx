@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Offering Report Bar Chart */}
-        <BarChartMedium chartData={chartData} />
+        <BarChartMedium chartData={chartData.length > 0 ? chartData : undefined} />
 
         {/* Live Offering Dashboard */}
         <LiveOfferingDashboard />

@@ -185,30 +185,36 @@ export default function NewExpensePage() {
         </div>
       ),
     },
-    ...(activeLoans.length > 0 ? [{
+    {
       bg: 'bg-[#fef9c3]',
       content: (
         <div className="space-y-2">
           <Label className="text-sm font-bold text-foreground">Link to Loan <span className="font-normal text-muted-foreground">(optional)</span></Label>
-          <Select value={loanId} onValueChange={setLoanId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Not linked to any loan" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              {activeLoans.map((loan) => (
-                <SelectItem key={loan.id} value={loan.id}>
-                  {loan.bank_name} — {loan.purpose}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {loanId && loanId !== 'none' && (
-            <p className="text-xs text-muted-foreground">This payment will reduce the loan balance and shorten the tenure.</p>
+          {activeLoans.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">No active loans yet. Add a loan from the Loans page to link expenses.</p>
+          ) : (
+            <>
+              <Select value={loanId} onValueChange={setLoanId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Not linked to any loan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {activeLoans.map((loan) => (
+                    <SelectItem key={loan.id} value={loan.id}>
+                      {loan.bank_name} — {loan.purpose}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {loanId && loanId !== 'none' && (
+                <p className="text-xs text-muted-foreground">This payment will reduce the loan balance and shorten the tenure.</p>
+              )}
+            </>
           )}
         </div>
       ),
-    }] : []),
+    },
     {
       bg: 'bg-[#fde8e8]',
       content: (

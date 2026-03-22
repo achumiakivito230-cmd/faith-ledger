@@ -10,6 +10,9 @@ import { DENOMINATIONS } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AnimatedNumber from '@/components/AnimatedNumber';
+import { Link } from 'react-router-dom';
+import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function HistoryPage() {
   const { churchId, role } = useAuth();
@@ -125,7 +128,15 @@ export default function HistoryPage() {
           {loading ? (
             <div className="p-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : offerings.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">No offerings recorded yet.</div>
+            <div className="p-10 flex flex-col items-center gap-3 text-center">
+              <p className="text-sm font-semibold text-foreground">No offerings yet</p>
+              <p className="text-xs text-muted-foreground">Record your first offering and it will appear here.</p>
+              <Link to="/new-offering">
+                <Button size="sm" className="rounded-xl gap-1.5 mt-1">
+                  <PlusCircle className="h-4 w-4" /> Record Offering
+                </Button>
+              </Link>
+            </div>
           ) : filteredOfferings.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">No offerings match the selected filters.</div>
           ) : (
