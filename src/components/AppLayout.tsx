@@ -17,7 +17,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const { profile, role, signOut } = useAuth();
   const location = useLocation();
 
-  const filteredNav = navItems.filter((item) => role && item.roles.includes(role));
+  // Show all nav items if role is still loading or not set — all roles have access to these pages anyway
+  const filteredNav = navItems.filter((item) => !role || item.roles.includes(role));
   const mobileNav = filteredNav.filter((item) => !('mobileHidden' in item && item.mobileHidden));
 
   return (
